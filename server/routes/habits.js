@@ -5,6 +5,7 @@ const Habit = require('../models/Habit');
 const router = express.Router();
 
 const DATE_RE = /^\d{4}-\d{2}-\d{2}$/;
+const HEX_COLOR_RE = /^#([0-9a-fA-F]{3}|[0-9a-fA-F]{6})$/;
 
 router.param('id', (req, res, next, id) => {
   if (!mongoose.isValidObjectId(id)) {
@@ -28,7 +29,10 @@ router.post('/', async (req, res) => {
     if (!name || !name.trim()) {
       return res.status(400).json({ error: 'Name is required' });
     }
-    const habit = await Habit.create({ name, color });
+    if (color !== undefined && (typeof color !== 'string' || !HEX_COLOR_RE.test(color))) {
+      return res.status(400).json({ error: 'Color must be a valid hex code (e.g. #f97316)' });
+    }
+    const habit = await Habit.create({ name: name.trim(), ...(color ? { color } : {}) });
     res.status(201).json(habit);
   } catch (err) {
     res.status(500).json({ error: err.message });
@@ -41,9 +45,14 @@ router.put('/:id', async (req, res) => {
     const updates = {};
     if (name !== undefined) {
       if (!name.trim()) return res.status(400).json({ error: 'Name cannot be empty' });
-      updates.name = name;
+      updates.name = name.trim();
     }
-    if (color !== undefined) updates.color = color;
+    if (color !== undefined) {
+      if (typeof color !== 'string' || !HEX_COLOR_RE.test(color)) {
+        return res.status(400).json({ error: 'Color must be a valid hex code (e.g. #f97316)' });
+      }
+      updates.color = color;
+    }
 
     const habit = await Habit.findByIdAndUpdate(req.params.id, updates, {
       returnDocument: 'after',
