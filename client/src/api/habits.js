@@ -1,0 +1,16 @@
+import axios from 'axios';
+
+const api = axios.create({
+  baseURL: `${import.meta.env.VITE_API_URL || 'http://localhost:5000'}/api/habits`,
+});
+
+export const getHabits = () => api.get('/').then((res) => res.data);
+
+export const createHabit = (habit) => api.post('/', habit).then((res) => res.data);
+
+export const updateHabit = (id, changes) => api.put(`/${id}`, changes).then((res) => res.data);
+
+export const deleteHabit = (id) => api.delete(`/${id}`).then((res) => res.data);
+
+export const toggleHabit = (id, date) =>
+  api.patch(`/${id}/toggle`, { date }).then((res) => res.data);
