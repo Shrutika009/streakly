@@ -2,6 +2,7 @@ require('dotenv').config({ quiet: true });
 const express = require('express');
 const mongoose = require('mongoose');
 const cors = require('cors');
+const authRoutes = require('./routes/auth');
 const habitRoutes = require('./routes/habits');
 
 const app = express();
@@ -11,6 +12,7 @@ app.use(cors({ origin: process.env.CLIENT_URL || 'http://localhost:5173' }));
 app.use(express.json());
 
 app.get('/api/health', (req, res) => res.json({ ok: true }));
+app.use('/api/auth', authRoutes);
 app.use('/api/habits', habitRoutes);
 
 app.use((req, res) => res.status(404).json({ error: 'Not found' }));

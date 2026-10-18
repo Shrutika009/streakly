@@ -1,28 +1,65 @@
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import * as api from './api/habits';
+import * as authApi from './api/auth';
 import Header from './components/Header';
 import TodaySummary from './components/TodaySummary';
 import AddHabitForm from './components/AddHabitForm';
 import HabitList from './components/HabitList';
 import EditHabitModal from './components/EditHabitModal';
+import AuthModal from './components/AuthModal';
 
 function errorMessage(err, fallback) {
   return err.response?.data?.error || fallback;
 }
 
 export default function App() {
+  const [user, setUser] = useState(null);
+  const [authOpen, setAuthOpen] = useState(false);
   const [habits, setHabits] = useState([]);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(() => Boolean(localStorage.getItem('streakly_token')));
   const [error, setError] = useState('');
   const [editing, setEditing] = useState(null);
 
-  useEffect(() => {
-    api
-      .getHabits()
-      .then(setHabits)
-      .catch(() => setError("Couldn't reach the server. Is the API running?"))
-      .finally(() => setLoading(false));
+  const loadHabits = useCallback(async () => {
+    try {
+      setLoading(true);
+      const data = await api.getHabits();
+      setHabits(data);
+      setError('');
+    } catch {
+      setError("Couldn't reach the server. Is the API running?");
+    } finally {
+      setLoading(false);
+    }
   }, []);
+
+  useEffect(() => {
+    const token = localStorage.getItem('streakly_token');
+    if (!token) return;
+
+    authApi
+      .getMe()
+      .then((res) => {
+        setUser(res.user);
+        return loadHabits();
+      })
+      .catch(() => {
+        localStorage.removeItem('streakly_token');
+        setUser(null);
+        setLoading(false);
+      });
+  }, [loadHabits]);
+
+  function handleAuthSuccess(loggedInUser) {
+    setUser(loggedInUser);
+    loadHabits();
+  }
+
+  function handleLogout() {
+    localStorage.removeItem('streakly_token');
+    setUser(null);
+    setHabits([]);
+  }
 
   async function handleAdd(habit) {
     const created = await api.createHabit(habit);
@@ -71,7 +108,7 @@ export default function App() {
   return (
     <div className="min-h-screen px-4 py-8 sm:py-12">
       <main className="mx-auto max-w-2xl space-y-6">
-        <Header />
+        <Header user={user} onOpenAuth={() => setAuthOpen(true)} onLogout={handleLogout} />
 
         {error && (
           <div className="flex items-start justify-between gap-4 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
@@ -84,7 +121,7 @@ export default function App() {
 
         {loading ? (
           <p className="py-16 text-center text-stone-400">Loading habits...</p>
-        ) : (
+        ) : user ? (
           <>
             <TodaySummary habits={habits} />
             <AddHabitForm onAdd={handleAdd} />
@@ -95,12 +132,39 @@ export default function App() {
               onDelete={handleDelete}
             />
           </>
+        ) : (
+          <div className="rounded-2xl bg-white p-8 text-center shadow-sm ring-1 ring-stone-100">
+            <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-2xl bg-orange-100 text-orange-600">
+              <svg className="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
+              </svg>
+            </div>
+            <h2 className="mt-4 text-xl font-bold text-stone-900">Your personal daily habit tracker</h2>
+            <p className="mx-auto mt-2 max-w-sm text-sm text-stone-500">
+              Sign in or create a free account to track your private habits, build streaks, and stay consistent.
+            </p>
+            <div className="mt-6 flex justify-center gap-3">
+              <button
+                type="button"
+                onClick={() => setAuthOpen(true)}
+                className="rounded-xl bg-stone-900 px-6 py-2.5 text-sm font-medium text-white transition hover:bg-stone-700"
+              >
+                Get Started
+              </button>
+            </div>
+          </div>
         )}
       </main>
 
       {editing && (
         <EditHabitModal habit={editing} onSave={handleSave} onClose={() => setEditing(null)} />
       )}
+
+      <AuthModal
+        isOpen={authOpen}
+        onClose={() => setAuthOpen(false)}
+        onAuthSuccess={handleAuthSuccess}
+      />
     </div>
   );
 }

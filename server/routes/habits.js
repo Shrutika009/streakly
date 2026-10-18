@@ -1,6 +1,7 @@
 const express = require('express');
 const mongoose = require('mongoose');
 const Habit = require('../models/Habit');
+const auth = require('../middleware/auth');
 
 const router = express.Router();
 
@@ -14,9 +15,12 @@ router.param('id', (req, res, next, id) => {
   next();
 });
 
+// Require authentication for all habit routes
+router.use(auth);
+
 router.get('/', async (req, res) => {
   try {
-    const habits = await Habit.find().sort({ createdAt: -1 });
+    const habits = await Habit.find({ user: req.user.id }).sort({ createdAt: -1 });
     res.json(habits);
   } catch (err) {
     res.status(500).json({ error: err.message });
@@ -32,7 +36,11 @@ router.post('/', async (req, res) => {
     if (color !== undefined && (typeof color !== 'string' || !HEX_COLOR_RE.test(color))) {
       return res.status(400).json({ error: 'Color must be a valid hex code (e.g. #f97316)' });
     }
-    const habit = await Habit.create({ name: name.trim(), ...(color ? { color } : {}) });
+    const habit = await Habit.create({
+      name: name.trim(),
+      ...(color ? { color } : {}),
+      user: req.user.id,
+    });
     res.status(201).json(habit);
   } catch (err) {
     res.status(500).json({ error: err.message });
@@ -54,10 +62,14 @@ router.put('/:id', async (req, res) => {
       updates.color = color;
     }
 
-    const habit = await Habit.findByIdAndUpdate(req.params.id, updates, {
-      returnDocument: 'after',
-      runValidators: true,
-    });
+    const habit = await Habit.findOneAndUpdate(
+      { _id: req.params.id, user: req.user.id },
+      updates,
+      {
+        returnDocument: 'after',
+        runValidators: true,
+      }
+    );
     if (!habit) return res.status(404).json({ error: 'Habit not found' });
     res.json(habit);
   } catch (err) {
@@ -67,7 +79,7 @@ router.put('/:id', async (req, res) => {
 
 router.delete('/:id', async (req, res) => {
   try {
-    const habit = await Habit.findByIdAndDelete(req.params.id);
+    const habit = await Habit.findOneAndDelete({ _id: req.params.id, user: req.user.id });
     if (!habit) return res.status(404).json({ error: 'Habit not found' });
     res.json({ message: 'Deleted', id: habit._id });
   } catch (err) {
@@ -82,7 +94,7 @@ router.patch('/:id/toggle', async (req, res) => {
       return res.status(400).json({ error: 'date must be in YYYY-MM-DD format' });
     }
 
-    const habit = await Habit.findById(req.params.id);
+    const habit = await Habit.findOne({ _id: req.params.id, user: req.user.id });
     if (!habit) return res.status(404).json({ error: 'Habit not found' });
 
     if (habit.completedDates.includes(date)) {

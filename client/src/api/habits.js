@@ -4,6 +4,14 @@ const api = axios.create({
   baseURL: `${import.meta.env.VITE_API_URL || 'http://localhost:5000'}/api/habits`,
 });
 
+api.interceptors.request.use((config) => {
+  const token = localStorage.getItem('streakly_token');
+  if (token) {
+    config.headers.Authorization = `Bearer ${token}`;
+  }
+  return config;
+});
+
 export const getHabits = () => api.get('/').then((res) => res.data);
 
 export const createHabit = (habit) => api.post('/', habit).then((res) => res.data);

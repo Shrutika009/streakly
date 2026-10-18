@@ -6,6 +6,7 @@ const habitSchema = new mongoose.Schema(
     color: { type: String, default: '#f97316' },
     // stored as YYYY-MM-DD strings so the client's local date is what counts
     completedDates: { type: [String], default: [] },
+    user: { type: mongoose.Schema.Types.ObjectId, ref: 'User', index: true },
   },
   { timestamps: true }
 );
