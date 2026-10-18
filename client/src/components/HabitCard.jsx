@@ -1,7 +1,7 @@
 import { currentStreak, longestStreak } from '../utils/streak';
 import WeekDots from './WeekDots';
 
-export default function HabitCard({ habit, onToggle, onEdit, onDelete }) {
+export default function HabitCard({ habit, onToggle, onEdit, onDelete, weekOffset = 0 }) {
   const current = currentStreak(habit.completedDates);
   const best = longestStreak(habit.completedDates);
 
@@ -49,6 +49,7 @@ export default function HabitCard({ habit, onToggle, onEdit, onDelete }) {
       <WeekDots
         dates={habit.completedDates}
         color={habit.color}
+        weekOffset={weekOffset}
         onToggle={(date) => onToggle(habit._id, date)}
       />
     </article>

@@ -6,6 +6,13 @@ export function todayStr() {
   return dayjs().format(FORMAT);
 }
 
+export function getWeekDays(offset = 0) {
+  const target = dayjs().add(offset, 'week');
+  // dayjs weeks start on Sunday, we want Monday
+  const monday = target.subtract((target.day() + 6) % 7, 'day');
+  return Array.from({ length: 7 }, (_, i) => monday.add(i, 'day'));
+}
+
 // If today isn't ticked yet the streak is still alive, so we start from yesterday.
 export function currentStreak(dates, today = todayStr()) {
   const done = new Set(dates);

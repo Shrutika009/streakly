@@ -1,18 +1,13 @@
 import dayjs from 'dayjs';
+import { getWeekDays } from '../utils/streak';
 
-function currentWeek() {
-  const today = dayjs();
-  // dayjs weeks start on Sunday, we want Monday
-  const monday = today.subtract((today.day() + 6) % 7, 'day');
-  return Array.from({ length: 7 }, (_, i) => monday.add(i, 'day'));
-}
-
-export default function WeekDots({ dates, color, onToggle }) {
+export default function WeekDots({ dates, color, onToggle, weekOffset = 0 }) {
   const today = dayjs().format('YYYY-MM-DD');
+  const days = getWeekDays(weekOffset);
 
   return (
     <div className="mt-4 grid grid-cols-7 gap-1 sm:gap-2">
-      {currentWeek().map((day) => {
+      {days.map((day) => {
         const date = day.format('YYYY-MM-DD');
         const done = dates.includes(date);
         const isToday = date === today;
