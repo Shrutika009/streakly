@@ -9,6 +9,7 @@ Streakly is a simple habit tracker. You add the habits you want to build, tick t
 - Add habits with a name and an accent color
 - Tick off any day of the current week (Mon to Sun); future days are locked
 - Current streak and longest streak for each habit
+- Yearly history heatmap per habit, GitHub style (click "History" on a card)
 - Today's progress bar ("Today: 2 / 3 done")
 - Toggling updates the UI instantly and rolls back if the request fails
 - Delete with confirmation
@@ -39,7 +40,7 @@ streakly/
 └── client/src/
     ├── api/habits.js
     ├── utils/        (streak.js, colors.js)
-    ├── components/   (Header, TodaySummary, AddHabitForm, HabitList, HabitCard, WeekDots, EditHabitModal)
+    ├── components/   (Header, TodaySummary, AddHabitForm, HabitList, HabitCard, WeekDots, YearHeatmap, EditHabitModal)
     ├── App.jsx
     └── main.jsx
 ```
@@ -124,5 +125,4 @@ These are still open and split up for the team:
 
 - User accounts and authentication
 - Daily reminders (email or push notifications)
-- A yearly heatmap view, GitHub style
 - Dark mode
