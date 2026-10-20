@@ -1,7 +1,10 @@
+import { useState } from 'react';
 import { currentStreak, longestStreak } from '../utils/streak';
 import WeekDots from './WeekDots';
+import YearHeatmap from './YearHeatmap';
 
 export default function HabitCard({ habit, onToggle, onEdit, onDelete, weekOffset = 0 }) {
+  const [showHistory, setShowHistory] = useState(false);
   const current = currentStreak(habit.completedDates);
   const best = longestStreak(habit.completedDates);
 
@@ -32,6 +35,15 @@ export default function HabitCard({ habit, onToggle, onEdit, onDelete, weekOffse
 
         <div className="flex shrink-0 gap-1 text-sm">
           <button
+            onClick={() => setShowHistory((prev) => !prev)}
+            aria-expanded={showHistory}
+            className={`rounded-lg px-2.5 py-1 hover:bg-stone-100 hover:text-stone-800 ${
+              showHistory ? 'bg-stone-100 text-stone-800' : 'text-stone-500'
+            }`}
+          >
+            History
+          </button>
+          <button
             onClick={() => onEdit(habit)}
             className="rounded-lg px-2.5 py-1 text-stone-500 hover:bg-stone-100 hover:text-stone-800"
           >
@@ -52,6 +64,8 @@ export default function HabitCard({ habit, onToggle, onEdit, onDelete, weekOffse
         weekOffset={weekOffset}
         onToggle={(date) => onToggle(habit._id, date)}
       />
+
+      {showHistory && <YearHeatmap dates={habit.completedDates} color={habit.color} />}
     </article>
   );
 }
