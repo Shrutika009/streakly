@@ -41,3 +41,9 @@ export function longestStreak(dates) {
   }
   return best;
 }
+
+// How many of the dates fall in the Mon–Sun week `offset` weeks from now.
+export function weekCount(dates, offset = 0) {
+  const days = new Set(getWeekDays(offset).map((d) => d.format(FORMAT)));
+  return dates.filter((d) => days.has(d)).length;
+}

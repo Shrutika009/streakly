@@ -16,7 +16,7 @@ export default function WeekDots({ dates, color, onToggle, weekOffset = 0 }) {
         return (
           <div key={date} className="flex flex-col items-center gap-1.5">
             <span
-              className={`text-xs ${isToday ? 'font-bold text-stone-900' : 'text-stone-400'}`}
+              className={`text-xs ${isToday ? 'heading font-bold' : 'text-stone-400 dark:text-stone-500'}`}
             >
               {day.format('dd').charAt(0)}
             </span>
@@ -25,9 +25,10 @@ export default function WeekDots({ dates, color, onToggle, weekOffset = 0 }) {
               disabled={isFuture}
               title={day.format('ddd, D MMM')}
               aria-label={`${day.format('dddd')} ${done ? 'done' : 'not done'}`}
+              aria-pressed={done}
               className={`h-8 w-8 rounded-full border-2 transition sm:h-9 sm:w-9 ${
                 isFuture ? 'cursor-not-allowed opacity-30' : 'hover:scale-110'
-              } ${isToday ? 'ring-2 ring-stone-300 ring-offset-2' : ''}`}
+              } ${isToday ? 'ring-2 ring-stone-300 ring-offset-2 dark:ring-stone-600 dark:ring-offset-stone-900' : ''}`}
               style={{
                 borderColor: color,
                 backgroundColor: done ? color : 'transparent',

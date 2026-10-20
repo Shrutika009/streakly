@@ -1,5 +1,55 @@
 @import "tailwindcss";
 
+/* Dark mode follows a .dark class on <html>, set by hooks/useTheme.js */
+@custom-variant dark (&:where(.dark, .dark *));
+
+/* native scrollbars and form controls follow the theme too */
+.dark {
+  color-scheme: dark;
+}
+
 body {
-  @apply bg-stone-50 text-stone-800 antialiased;
+  @apply bg-stone-50 text-stone-800 antialiased dark:bg-stone-950 dark:text-stone-200;
+}
+
+@layer components {
+  .card {
+    @apply rounded-2xl bg-white shadow-sm ring-1 ring-stone-100 dark:bg-stone-900 dark:shadow-none dark:ring-stone-800;
+  }
+
+  .input {
+    @apply w-full rounded-xl border border-stone-200 bg-white px-4 py-2.5 text-stone-900 outline-none placeholder:text-stone-400 focus:border-orange-400 focus:ring-2 focus:ring-orange-100 dark:border-stone-700 dark:bg-stone-950 dark:text-stone-100 dark:placeholder:text-stone-500 dark:focus:ring-orange-500/20;
+  }
+
+  .label {
+    @apply block text-sm font-medium text-stone-700 dark:text-stone-300;
+  }
+
+  .btn-primary {
+    @apply rounded-xl bg-stone-900 px-5 py-2.5 text-sm font-medium text-white transition hover:bg-stone-700 disabled:cursor-not-allowed disabled:opacity-40 dark:bg-stone-100 dark:text-stone-900 dark:hover:bg-white;
+  }
+
+  .btn-secondary {
+    @apply rounded-xl border border-stone-200 px-4 py-2 text-sm font-medium text-stone-600 transition hover:bg-stone-50 disabled:opacity-50 dark:border-stone-700 dark:text-stone-300 dark:hover:bg-stone-800;
+  }
+
+  .btn-danger {
+    @apply rounded-xl bg-red-600 px-4 py-2 text-sm font-medium text-white transition hover:bg-red-700 disabled:cursor-not-allowed disabled:opacity-40;
+  }
+
+  .btn-ghost {
+    @apply rounded-lg px-2.5 py-1 text-stone-500 transition hover:bg-stone-100 hover:text-stone-800 dark:text-stone-400 dark:hover:bg-stone-800 dark:hover:text-stone-100;
+  }
+
+  .icon-btn {
+    @apply flex h-8 w-8 items-center justify-center rounded-lg border border-stone-200 bg-white text-stone-600 shadow-sm transition hover:bg-stone-50 hover:text-stone-900 disabled:cursor-not-allowed disabled:opacity-30 dark:border-stone-700 dark:bg-stone-900 dark:text-stone-300 dark:shadow-none dark:hover:bg-stone-800 dark:hover:text-stone-100;
+  }
+
+  .muted {
+    @apply text-stone-500 dark:text-stone-400;
+  }
+
+  .heading {
+    @apply text-stone-900 dark:text-stone-100;
+  }
 }

@@ -4,16 +4,23 @@ import { getWeekDays } from '../utils/streak';
 
 const WEEKS = 53;
 const ROW_LABELS = ['Mon', '', 'Wed', '', 'Fri', '', ''];
+// Share of the color mixed into the cell for each level, light to full.
+const STEPS = [30, 55, 78, 100];
 
-export default function YearHeatmap({ dates, color }) {
+function cellStyle(level, color) {
+  if (!level) return undefined;
+  const step = STEPS[Math.min(STEPS.length - 1, Math.ceil(level * STEPS.length) - 1)];
+  return { backgroundColor: `color-mix(in srgb, ${color} ${step}%, transparent)` };
+}
+
+// GitHub-style grid of the last year. `getLevel(date)` returns 0..1
+// (0 = nothing done), `tooltip(date, level)` the hover text.
+export default function YearHeatmap({ getLevel, color, summary, tooltip, legend = false }) {
   const scrollRef = useRef(null);
-  const done = new Set(dates);
   const today = dayjs().format('YYYY-MM-DD');
 
   // Oldest week first, so the current week ends up on the right like GitHub.
   const weeks = Array.from({ length: WEEKS }, (_, i) => getWeekDays(i - (WEEKS - 1)));
-  const firstDay = weeks[0][0].format('YYYY-MM-DD');
-  const total = dates.filter((d) => d >= firstDay && d <= today).length;
 
   // Start scrolled to today on narrow screens.
   useEffect(() => {
@@ -22,15 +29,12 @@ export default function YearHeatmap({ dates, color }) {
   }, []);
 
   return (
-    <div className="mt-4 border-t border-stone-100 pt-4">
-      <p className="mb-2 text-xs text-stone-500">
-        <strong className="text-stone-700">{total}</strong> {total === 1 ? 'day' : 'days'} done in
-        the last year
-      </p>
+    <div>
+      {summary && <p className="muted mb-2 text-xs">{summary}</p>}
 
       <div ref={scrollRef} className="overflow-x-auto pb-1">
         <div className="inline-flex gap-[3px]">
-          <div className="mr-1 grid grid-rows-[auto_repeat(7,10px)] gap-[3px] text-[9px] leading-[10px] text-stone-400">
+          <div className="mr-1 grid grid-rows-[auto_repeat(7,10px)] gap-[3px] text-[9px] leading-[10px] text-stone-400 dark:text-stone-500">
             <span className="h-3" />
             {ROW_LABELS.map((label, i) => (
               <span key={i}>{label}</span>
@@ -38,29 +42,30 @@ export default function YearHeatmap({ dates, color }) {
           </div>
 
           {weeks.map((days, w) => {
-            const monday = days[0];
             // Label the first week that contains the 1st of a month.
-            const monthStart = days.find((d) => d.date() === 1);
-            const showMonth = w === 0 ? null : monthStart;
+            const monthStart = w === 0 ? null : days.find((d) => d.date() === 1);
 
             return (
-              <div key={monday.format('YYYY-MM-DD')} className="grid grid-rows-[auto_repeat(7,10px)] gap-[3px]">
-                <span className="h-3 whitespace-nowrap text-[9px] leading-3 text-stone-400">
-                  {showMonth ? showMonth.format('MMM') : ''}
+              <div
+                key={days[0].format('YYYY-MM-DD')}
+                className="grid grid-rows-[auto_repeat(7,10px)] gap-[3px]"
+              >
+                <span className="h-3 whitespace-nowrap text-[9px] leading-3 text-stone-400 dark:text-stone-500">
+                  {monthStart ? monthStart.format('MMM') : ''}
                 </span>
                 {days.map((day) => {
                   const date = day.format('YYYY-MM-DD');
-                  const isDone = done.has(date);
                   const isFuture = date > today;
+                  const level = isFuture ? 0 : getLevel(date);
 
                   return (
                     <span
                       key={date}
-                      title={`${day.format('ddd, D MMM YYYY')}${isDone ? ' · done' : ''}`}
+                      title={isFuture ? undefined : tooltip(day, level)}
                       className={`h-[10px] w-[10px] rounded-[2px] ${
-                        isFuture ? 'invisible' : isDone ? '' : 'bg-stone-100'
-                      } ${date === today ? 'ring-1 ring-stone-400' : ''}`}
-                      style={isDone ? { backgroundColor: color } : undefined}
+                        isFuture ? 'invisible' : level ? '' : 'bg-stone-100 dark:bg-stone-800'
+                      } ${date === today ? 'ring-1 ring-stone-400 dark:ring-stone-500' : ''}`}
+                      style={cellStyle(level, color)}
                     />
                   );
                 })}
@@ -69,6 +74,21 @@ export default function YearHeatmap({ dates, color }) {
           })}
         </div>
       </div>
+
+      {legend && (
+        <div className="muted mt-2 flex items-center justify-end gap-1 text-[10px]">
+          <span className="mr-1">Less</span>
+          <span className="h-[10px] w-[10px] rounded-[2px] bg-stone-100 dark:bg-stone-800" />
+          {STEPS.map((_, i) => (
+            <span
+              key={i}
+              className="h-[10px] w-[10px] rounded-[2px]"
+              style={cellStyle((i + 1) / STEPS.length, color)}
+            />
+          ))}
+          <span className="ml-1">More</span>
+        </div>
+      )}
     </div>
   );
 }
