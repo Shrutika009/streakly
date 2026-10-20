@@ -22,3 +22,9 @@ export const deleteHabit = (id) => api.delete(`/${id}`).then((res) => res.data);
 
 export const toggleHabit = (id, date) =>
   api.patch(`/${id}/toggle`, { date }).then((res) => res.data);
+
+export const reorderHabits = (ids) => api.put('/reorder', { ids }).then((res) => res.data);
+
+export const exportHabits = () => api.get('/export').then((res) => res.data);
+
+export const importHabits = (data) => api.post('/import', data).then((res) => res.data);

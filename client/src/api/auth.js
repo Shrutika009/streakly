@@ -17,3 +17,11 @@ export const register = (userData) => api.post('/register', userData).then((res)
 export const login = (credentials) => api.post('/login', credentials).then((res) => res.data);
 
 export const getMe = () => api.get('/me').then((res) => res.data);
+
+export const updateProfile = (changes) => api.put('/me', changes).then((res) => res.data);
+
+export const changePassword = (passwords) =>
+  api.put('/me/password', passwords).then((res) => res.data);
+
+export const deleteAccount = (password) =>
+  api.delete('/me', { data: { password } }).then((res) => res.data);
