@@ -4,9 +4,10 @@ const jwt = require('jsonwebtoken');
 const User = require('../models/User');
 const Habit = require('../models/Habit');
 const auth = require('../middleware/auth');
+const { resolveJwtSecret } = require('../lib/config');
 
 const router = express.Router();
-const JWT_SECRET = process.env.JWT_SECRET || 'streakly-secret-key-123';
+const JWT_SECRET = resolveJwtSecret();
 
 function generateToken(user) {
   return jwt.sign(
@@ -45,10 +46,6 @@ router.post('/register', async (req, res) => {
       password: hashedPassword,
     });
 
-    // Automatically link any existing unclaimed habits to this user
-    await Habit.updateMany({ user: { $exists: false } }, { user: user._id });
-    await Habit.updateMany({ user: null }, { user: user._id });
-
     const token = generateToken(user);
     res.status(201).json({
       token,
@@ -78,10 +75,6 @@ router.post('/login', async (req, res) => {
       return res.status(400).json({ error: 'Invalid email or password' });
     }
 
-    // Automatically link any existing unclaimed habits to this user
-    await Habit.updateMany({ user: { $exists: false } }, { user: user._id });
-    await Habit.updateMany({ user: null }, { user: user._id });
-
     const token = generateToken(user);
     res.json({
       token,
@@ -100,6 +93,85 @@ router.get('/me', auth, async (req, res) => {
       return res.status(404).json({ error: 'User not found' });
     }
     res.json({ user: { id: user._id, name: user.name, email: user.email } });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// PUT /api/auth/me — body { name }
+router.put('/me', auth, async (req, res) => {
+  try {
+    const { name } = req.body || {};
+    if (typeof name !== 'string' || !name.trim()) {
+      return res.status(400).json({ error: 'Name is required' });
+    }
+    if (name.trim().length > 40) {
+      return res.status(400).json({ error: 'Name must be 40 characters or less' });
+    }
+
+    const user = await User.findByIdAndUpdate(
+      req.user.id,
+      { name: name.trim() },
+      { returnDocument: 'after' }
+    );
+    if (!user) return res.status(404).json({ error: 'User not found' });
+
+    // The name is inside the token, so hand out a fresh one.
+    res.json({
+      token: generateToken(user),
+      user: { id: user._id, name: user.name, email: user.email },
+    });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// PUT /api/auth/me/password — body { currentPassword, newPassword }
+router.put('/me/password', auth, async (req, res) => {
+  try {
+    const { currentPassword, newPassword } = req.body || {};
+    if (!currentPassword) {
+      return res.status(400).json({ error: 'Current password is required' });
+    }
+    if (typeof newPassword !== 'string' || newPassword.length < 6) {
+      return res.status(400).json({ error: 'New password must be at least 6 characters' });
+    }
+
+    const user = await User.findById(req.user.id);
+    if (!user) return res.status(404).json({ error: 'User not found' });
+
+    const isMatch = await bcrypt.compare(currentPassword, user.password);
+    if (!isMatch) {
+      return res.status(400).json({ error: 'Current password is incorrect' });
+    }
+
+    user.password = await bcrypt.hash(newPassword, 10);
+    await user.save();
+    res.json({ message: 'Password updated' });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// DELETE /api/auth/me — body { password }. Removes the user and all their habits.
+router.delete('/me', auth, async (req, res) => {
+  try {
+    const { password } = req.body || {};
+    if (!password) {
+      return res.status(400).json({ error: 'Password is required to delete your account' });
+    }
+
+    const user = await User.findById(req.user.id);
+    if (!user) return res.status(404).json({ error: 'User not found' });
+
+    const isMatch = await bcrypt.compare(password, user.password);
+    if (!isMatch) {
+      return res.status(400).json({ error: 'Password is incorrect' });
+    }
+
+    const { deletedCount } = await Habit.deleteMany({ user: user._id });
+    await user.deleteOne();
+    res.json({ message: 'Account deleted', deletedHabits: deletedCount });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }

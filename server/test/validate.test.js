@@ -1,0 +1,74 @@
+const { test } = require('node:test');
+const assert = require('node:assert/strict');
+const {
+  isValidDate,
+  isValidColor,
+  parseHabitFields,
+  parseImport,
+  MAX_IMPORT_HABITS,
+} = require('../lib/validate');
+
+test('isValidDate accepts real days only', () => {
+  assert.equal(isValidDate('2026-10-20'), true);
+  assert.equal(isValidDate('2024-02-29'), true); // leap year
+  assert.equal(isValidDate('2026-02-29'), false);
+  assert.equal(isValidDate('2026-13-01'), false);
+  assert.equal(isValidDate('2026-1-5'), false);
+  assert.equal(isValidDate(20261020), false);
+  assert.equal(isValidDate(undefined), false);
+});
+
+test('isValidColor accepts 3 and 6 digit hex', () => {
+  assert.equal(isValidColor('#f97316'), true);
+  assert.equal(isValidColor('#FFF'), true);
+  assert.equal(isValidColor('f97316'), false);
+  assert.equal(isValidColor('#f9731'), false);
+  assert.equal(isValidColor('red'), false);
+});
+
+test('parseHabitFields requires a name unless partial', () => {
+  assert.deepEqual(parseHabitFields({}), { error: 'Name is required' });
+  assert.deepEqual(parseHabitFields({ name: '   ' }), { error: 'Name is required' });
+  assert.deepEqual(parseHabitFields({}, { partial: true }), { values: {} });
+  assert.deepEqual(parseHabitFields({ name: '' }, { partial: true }), {
+    error: 'Name cannot be empty',
+  });
+});
+
+test('parseHabitFields trims and keeps valid fields', () => {
+  const { values } = parseHabitFields({
+    name: '  Read  ',
+    color: '#22c55e',
+    weeklyGoal: 5,
+    archived: true,
+  });
+  assert.deepEqual(values, { name: 'Read', color: '#22c55e', weeklyGoal: 5, archived: true });
+});
+
+test('parseHabitFields rejects bad values', () => {
+  assert.match(parseHabitFields({ name: 'x'.repeat(61) }).error, /60 characters/);
+  assert.match(parseHabitFields({ name: 'Read', color: 'blue' }).error, /hex/);
+  assert.match(parseHabitFields({ name: 'Read', weeklyGoal: 0 }).error, /1 to 7/);
+  assert.match(parseHabitFields({ name: 'Read', weeklyGoal: 8 }).error, /1 to 7/);
+  assert.match(parseHabitFields({ name: 'Read', weeklyGoal: 2.5 }).error, /1 to 7/);
+  assert.match(parseHabitFields({ name: 'Read', archived: 'yes' }).error, /true or false/);
+});
+
+test('parseImport cleans dates and reports the bad habit', () => {
+  const { habits } = parseImport({
+    habits: [
+      {
+        name: 'Run',
+        completedDates: ['2026-10-02', '2026-10-01', '2026-10-01', 'nope', '2026-02-30'],
+      },
+    ],
+  });
+  assert.deepEqual(habits, [{ name: 'Run', completedDates: ['2026-10-01', '2026-10-02'] }]);
+
+  assert.match(parseImport({ habits: [{ name: 'A' }, { name: '' }] }).error, /^Habit 2:/);
+  assert.match(parseImport({}).error, /no habits/);
+  assert.match(parseImport({ habits: [] }).error, /no habits/);
+
+  const tooMany = Array.from({ length: MAX_IMPORT_HABITS + 1 }, () => ({ name: 'x' }));
+  assert.match(parseImport({ habits: tooMany }).error, /at most/);
+});

@@ -1,6 +1,7 @@
 const jwt = require('jsonwebtoken');
+const { resolveJwtSecret } = require('../lib/config');
 
-const JWT_SECRET = process.env.JWT_SECRET || 'streakly-secret-key-123';
+const JWT_SECRET = resolveJwtSecret();
 
 module.exports = function authMiddleware(req, res, next) {
   const authHeader = req.headers.authorization;

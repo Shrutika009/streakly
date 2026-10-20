@@ -2,11 +2,9 @@ const express = require('express');
 const mongoose = require('mongoose');
 const Habit = require('../models/Habit');
 const auth = require('../middleware/auth');
+const { isValidDate, parseHabitFields, parseImport } = require('../lib/validate');
 
 const router = express.Router();
-
-const DATE_RE = /^\d{4}-\d{2}-\d{2}$/;
-const HEX_COLOR_RE = /^#([0-9a-fA-F]{3}|[0-9a-fA-F]{6})$/;
 
 router.param('id', (req, res, next, id) => {
   if (!mongoose.isValidObjectId(id)) {
@@ -18,9 +16,15 @@ router.param('id', (req, res, next, id) => {
 // Require authentication for all habit routes
 router.use(auth);
 
+// The order value that puts a new habit above everything the user already has.
+async function topOrder(userId) {
+  const first = await Habit.findOne({ user: userId }).sort({ order: 1 }).select('order');
+  return first ? first.order - 1 : 0;
+}
+
 router.get('/', async (req, res) => {
   try {
-    const habits = await Habit.find({ user: req.user.id }).sort({ createdAt: -1 });
+    const habits = await Habit.find({ user: req.user.id }).sort({ order: 1, createdAt: -1 });
     res.json(habits);
   } catch (err) {
     res.status(500).json({ error: err.message });
@@ -29,16 +33,12 @@ router.get('/', async (req, res) => {
 
 router.post('/', async (req, res) => {
   try {
-    const { name, color } = req.body || {};
-    if (!name || !name.trim()) {
-      return res.status(400).json({ error: 'Name is required' });
-    }
-    if (color !== undefined && (typeof color !== 'string' || !HEX_COLOR_RE.test(color))) {
-      return res.status(400).json({ error: 'Color must be a valid hex code (e.g. #f97316)' });
-    }
+    const { error, values } = parseHabitFields(req.body);
+    if (error) return res.status(400).json({ error });
+
     const habit = await Habit.create({
-      name: name.trim(),
-      ...(color ? { color } : {}),
+      ...values,
+      order: await topOrder(req.user.id),
       user: req.user.id,
     });
     res.status(201).json(habit);
@@ -47,24 +47,84 @@ router.post('/', async (req, res) => {
   }
 });
 
+// Body { ids: [...] } with the user's habit ids in their new order.
+// Declared before /:id so "reorder" isn't treated as an id.
+router.put('/reorder', async (req, res) => {
+  try {
+    const { ids } = req.body || {};
+    if (!Array.isArray(ids) || ids.length === 0 || !ids.every(mongoose.isValidObjectId)) {
+      return res.status(400).json({ error: 'ids must be a non-empty list of habit ids' });
+    }
+    if (new Set(ids).size !== ids.length) {
+      return res.status(400).json({ error: 'ids must not contain duplicates' });
+    }
+
+    const owned = await Habit.countDocuments({ _id: { $in: ids }, user: req.user.id });
+    if (owned !== ids.length) {
+      return res.status(404).json({ error: 'One or more habits were not found' });
+    }
+
+    await Habit.bulkWrite(
+      ids.map((id, index) => ({
+        updateOne: { filter: { _id: id, user: req.user.id }, update: { order: index } },
+      }))
+    );
+
+    const habits = await Habit.find({ user: req.user.id }).sort({ order: 1, createdAt: -1 });
+    res.json(habits);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// Everything needed to rebuild the user's habits, without ids or owner.
+router.get('/export', async (req, res) => {
+  try {
+    const habits = await Habit.find({ user: req.user.id }).sort({ order: 1, createdAt: -1 });
+    res.json({
+      app: 'streakly',
+      version: 1,
+      exportedAt: new Date().toISOString(),
+      habits: habits.map((h) => ({
+        name: h.name,
+        color: h.color,
+        weeklyGoal: h.weeklyGoal,
+        archived: h.archived,
+        completedDates: [...h.completedDates].sort(),
+        createdAt: h.createdAt,
+      })),
+    });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// Adds the habits from an export file. Existing habits are left alone,
+// so importing the same file twice gives you duplicates, not overwrites.
+router.post('/import', async (req, res) => {
+  try {
+    const { error, habits } = parseImport(req.body);
+    if (error) return res.status(400).json({ error });
+
+    // Keep the file's order, all above the user's current habits.
+    const start = (await topOrder(req.user.id)) - habits.length + 1;
+    const created = await Habit.insertMany(
+      habits.map((h, i) => ({ ...h, order: start + i, user: req.user.id }))
+    );
+    res.status(201).json({ imported: created.length, habits: created });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
 router.put('/:id', async (req, res) => {
   try {
-    const { name, color } = req.body || {};
-    const updates = {};
-    if (name !== undefined) {
-      if (!name.trim()) return res.status(400).json({ error: 'Name cannot be empty' });
-      updates.name = name.trim();
-    }
-    if (color !== undefined) {
-      if (typeof color !== 'string' || !HEX_COLOR_RE.test(color)) {
-        return res.status(400).json({ error: 'Color must be a valid hex code (e.g. #f97316)' });
-      }
-      updates.color = color;
-    }
+    const { error, values } = parseHabitFields(req.body, { partial: true });
+    if (error) return res.status(400).json({ error });
 
     const habit = await Habit.findOneAndUpdate(
       { _id: req.params.id, user: req.user.id },
-      updates,
+      values,
       {
         returnDocument: 'after',
         runValidators: true,
@@ -90,8 +150,8 @@ router.delete('/:id', async (req, res) => {
 router.patch('/:id/toggle', async (req, res) => {
   try {
     const { date } = req.body || {};
-    if (!date || !DATE_RE.test(date)) {
-      return res.status(400).json({ error: 'date must be in YYYY-MM-DD format' });
+    if (!isValidDate(date)) {
+      return res.status(400).json({ error: 'date must be a real day in YYYY-MM-DD format' });
     }
 
     const habit = await Habit.findOne({ _id: req.params.id, user: req.user.id });
