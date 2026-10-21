@@ -7,6 +7,7 @@ Streakly is a simple habit tracker. You add the habits you want to build, tick t
 ## Features
 
 - Add habits with a name and an accent color
+- Edit a habit's name, color and weekly goal later (click "Edit" on a card)
 - Tick off any day of the current week (Mon to Sun); future days are locked
 - Current streak and longest streak for each habit
 - Yearly history heatmap per habit, GitHub style (click "History" on a card)
@@ -57,7 +58,7 @@ streakly/
 
 ## Running locally
 
-You need Node.js 18+ and MongoDB (a local install or a free Atlas cluster).
+You need Node.js 20.19+ (or 22.12+) and MongoDB (a local install or a free Atlas cluster).
 
 **1. Server**
 
@@ -150,18 +151,8 @@ Bad input returns 400 with `{ error }`. Unknown or invalid ids return 404. `GET 
 
 ## Remaining work
 
-These are still open and split up for the team:
-
-1. **Edit habit modal** (`client/src/components/EditHabitModal.jsx`)
-   Currently a placeholder. Needs a name input, the color swatches from `utils/colors.js`, Save and Cancel buttons, close on Escape or backdrop click, and an error message if saving fails. `App.jsx` already passes `habit`, `onSave(id, { name, color })` and `onClose`, and the `PUT /api/habits/:id` route is done and tested.
-
-2. **Deploy**
-   Follow the Deployment section above: set up Atlas, deploy the server to Render and the client to Vercel, then add the live URLs to the top of this README.
-
-3. **Server-side color validation** (`server/routes/habits.js`)
-   The API accepts any string as `color`. Only accept hex colors like `#f97316` and return 400 otherwise, for both POST and PUT.
+- **Deploy**: Follow the Deployment section above: set up Atlas, deploy the server to Render and the client to Vercel, then add the live URLs to the top of this README.
 
 ## Future improvements
 
-- User accounts and authentication
 - Daily reminders (email or push notifications)
