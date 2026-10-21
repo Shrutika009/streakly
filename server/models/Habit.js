@@ -4,6 +4,7 @@ const { HEX_COLOR_RE } = require('../lib/validate');
 const habitSchema = new mongoose.Schema(
   {
     name: { type: String, required: true, trim: true },
+    // keep in sync with COLORS[0] in client/src/utils/colors.js
     color: {
       type: String,
       default: '#f97316',
