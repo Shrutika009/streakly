@@ -85,6 +85,7 @@ function parseImport(body) {
 }
 
 module.exports = {
+  HEX_COLOR_RE,
   MAX_NAME_LENGTH,
   MAX_IMPORT_HABITS,
   isValidDate,

@@ -1,9 +1,14 @@
 const mongoose = require('mongoose');
+const { HEX_COLOR_RE } = require('../lib/validate');
 
 const habitSchema = new mongoose.Schema(
   {
     name: { type: String, required: true, trim: true },
-    color: { type: String, default: '#f97316' },
+    color: {
+      type: String,
+      default: '#f97316',
+      match: [HEX_COLOR_RE, 'Color must be a valid hex code (e.g. #f97316)'],
+    },
     // how many days a week the user is aiming for (7 = every day)
     weeklyGoal: { type: Number, default: 7, min: 1, max: 7 },
     // stored as YYYY-MM-DD strings so the client's local date is what counts
