@@ -56,7 +56,15 @@ Open **http://localhost:5173**.
 
 A fresh account has no history, so the heatmaps and stats look empty.
 
-**Quickest:** in `server/`, run
+**Quickest:** first make sure `server/.env` has your own `MONGO_URI` (see step 1). `.env` isn't in git, so after pulling, each person sets it up on their own machine:
+
+```bash
+cd server
+cp .env.example .env     # only if you don't have a .env yet
+# then set MONGO_URI in .env, e.g. MONGO_URI=mongodb://127.0.0.1:27017/streakly
+```
+
+Then, still in `server/`, run
 
 ```bash
 npm run seed-demo
