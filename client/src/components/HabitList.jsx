@@ -89,12 +89,25 @@ function FilterBar({
 }
 
 const HabitList = forwardRef(function HabitList(
-  { habits, onToggle, onEdit, onDelete, onArchive, onMove, onOpenNote },
+  {
+    habits,
+    onToggle,
+    onEdit,
+    onDelete,
+    onArchive,
+    onMove,
+    onOpenNote,
+    // optional: let the sidebar control the category filter
+    category: categoryProp,
+    onCategoryChange,
+  },
   searchRef,
 ) {
   const [weekOffset, setWeekOffset] = useState(0);
   const [query, setQuery] = useState('');
-  const [category, setCategory] = useState('all');
+  const [localCategory, setLocalCategory] = useState('all');
+  const category = categoryProp ?? localCategory;
+  const setCategory = onCategoryChange ?? setLocalCategory;
   const [todoOnly, setTodoOnly] = useState(false);
 
   if (!habits.length) {

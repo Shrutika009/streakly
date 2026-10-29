@@ -10,6 +10,7 @@ export default function HabitMenu({
   header,
   buttonClassName = 'btn-ghost px-2',
   width = 'w-40',
+  align = 'right',
 }) {
   const [open, setOpen] = useState(false);
   const ref = useRef(null);
@@ -53,7 +54,7 @@ export default function HabitMenu({
       {open && (
         <div
           role="menu"
-          className={`animate-pop-in absolute right-0 z-40 mt-1 ${width} origin-top-right overflow-hidden rounded-xl bg-white py-1 shadow-lg ring-1 ring-stone-200 dark:bg-stone-800 dark:ring-stone-700`}
+          className={`animate-pop-in absolute ${align === 'left' ? 'left-0 origin-top-left' : 'right-0 origin-top-right'} z-40 mt-1 ${width} overflow-hidden rounded-xl bg-white py-1 shadow-lg ring-1 ring-stone-200 dark:bg-stone-800 dark:ring-stone-700`}
         >
           {header}
           {items.map((item) => (

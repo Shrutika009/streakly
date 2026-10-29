@@ -84,8 +84,14 @@ Then import `streakly-demo.json` as above.
 1. Click **Get Started** → **Create Account**. Use any name, email and a password of 6+ characters.
 2. Habits are private: sign out, create a second account, and it starts empty.
 
+### Layout
+After signing in you land on **Today**. The sidebar on the left has **Add habit**, **Search**, the views (**Today**, **All habits**, **Board**, **Stats**, **Archived**) with counts, and your **Categories**. Hide it with the panel button or `[`; on phones open it with the ☰ button.
+
+- **Today**: tick habits with the round button; they move to "Done today". Hover a row for **Note**.
+- **Board**: columns by **Category** or **Weekly goal** (switch at the top right). Each column has **+ Add habit**, which starts with that column's category or goal.
+
 ### Habits
-1. Type a habit name, pick a **color** and a **weekly goal** (1–7 days, 7 = every day), click **Add**. New habits go to the top.
+1. Click **Add habit** (sidebar, or press `n`), type a habit name, pick a **color** and a **weekly goal** (1–7 days, 7 = every day), click **Add**. New habits go to the top.
 2. Tick today's circle. The **Today** bar at the top updates instantly.
 3. Each card shows **Streak**, **Best** and **This week 2/5**. A green ✓ appears once the weekly goal is met.
 4. Use the **‹ ›** arrows to go back to earlier weeks and tick past days. Future days are locked.
@@ -97,7 +103,7 @@ Then import `streakly-demo.json` as above.
 2. The welcome panel at the top greets you, shows a progress ring for today and a new quote each day.
 3. Tick every habit for today: confetti, and the ring turns green 🎉.
 4. Use the search box, category chips and **To do today** above the list to filter.
-5. Press **?** for keyboard shortcuts (`n` new habit, `/` search, `h` / `s` switch views, `t` theme).
+5. Press **?** for keyboard shortcuts (`n` new habit, `/` search, `1`–`4` switch views, `[` hide or show the sidebar, `t` theme).
 6. Reminders: account menu → **Account settings → Reminders → Turn on system notifications**. They show while the tab is open.
 
 ### Notes, calendar and ideas
@@ -112,7 +118,7 @@ Then import `streakly-demo.json` as above.
 4. **⋯ → Delete** removes a habit for good (asks to confirm).
 
 ### Stats
-Switch to the **Stats** tab (or press `s`):
+Open **Stats** in the sidebar (or press `4`):
 - **Tiles**: share of check-ins done in the last 30 days, perfect days (every habit ticked), top current streak, active habits.
 - **All habits, last year**: heatmap where darker orange means more of your habits were done that day.
 - **By day of the week**: completion per weekday over the last 12 weeks. Hover a bar to read its value; by default it names your best day.
@@ -127,7 +133,7 @@ Archived habits aren't counted in stats.
 Click the sun / moon / monitor button in the header to cycle **light → dark → system**. The choice is remembered.
 
 ### Account settings
-Click your **avatar** (top right) → **Account settings**:
+Click your **name** at the top of the sidebar → **Account settings** (or **Settings** at the bottom of the sidebar):
 - **Profile**: change your display name.
 - **Change password**: needs the current one.
 - **Your data**: **Export JSON** downloads everything; **Import JSON** adds habits from a file next to your existing ones (importing twice gives duplicates).

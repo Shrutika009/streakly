@@ -2,8 +2,8 @@ import { useState } from 'react';
 import { longestStreak } from '../utils/streak';
 
 // Collapsible list of archived habits with restore and delete.
-export default function ArchivedList({ habits, onRestore, onDelete }) {
-  const [open, setOpen] = useState(false);
+export default function ArchivedList({ habits, onRestore, onDelete, defaultOpen = false }) {
+  const [open, setOpen] = useState(defaultOpen);
 
   if (!habits.length) return null;
 

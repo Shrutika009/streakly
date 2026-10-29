@@ -15,6 +15,8 @@ Streakly is a simple habit tracker. You add the habits you want to build, tick t
 - Stats view: 30-day completion, perfect days, top streak, an all-habits heatmap, completion by weekday, and a per-habit table
 - Reorder habits (move up / down) and archive the ones you've paused, with undo
 - Light, dark and system themes
+- Todoist-style layout after sign-in: a collapsible sidebar (Today, All habits, Board, Stats, Archived, Categories) that becomes a slide-out menu on phones
+- **Today** list split into "To do" and "Done today", and a **Board** with columns by category or weekly goal
 - Welcome panel with a greeting, today's progress ring and a quote of the day
 - Emoji icon and category per habit, plus search, category filters and a "To do today" filter
 - Achievements (streak, total and perfect-week badges) with confetti when you unlock one or finish the day
@@ -24,7 +26,7 @@ Streakly is a simple habit tracker. You add the habits you want to build, tick t
 - Month calendar in History next to the yearly heatmap; tick past days right from it
 - Weekly recap on Stats (this week vs the same days last week) and a **Share progress** image
 - Installable as an app (PWA) with the app shell cached for offline use (production builds only)
-- Keyboard shortcuts: `n` new habit, `/` search, `h` / `s` switch views, `t` theme, `?` help
+- Keyboard shortcuts: `n` new habit, `/` search, `1`–`4` switch views, `[` toggle sidebar, `t` theme, `?` help
 - Account settings: change name or password, export / import your data as JSON, delete your account
 - Today's progress bar ("Today: 2 / 3 done")
 - Toggling updates the UI instantly and rolls back if the request fails

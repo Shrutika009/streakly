@@ -3,8 +3,11 @@ import Modal from './Modal';
 const SHORTCUTS = [
   ['n', 'Add a new habit'],
   ['/', 'Search habits'],
-  ['h', 'Go to Habits'],
-  ['s', 'Go to Stats'],
+  ['1', 'Go to Today'],
+  ['2', 'Go to All habits'],
+  ['3', 'Go to Board'],
+  ['4', 'Go to Stats'],
+  ['[', 'Show or hide the sidebar'],
   ['t', 'Switch theme'],
   ['?', 'Show this list'],
   ['Esc', 'Close a dialog or menu'],

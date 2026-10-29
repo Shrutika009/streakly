@@ -3,12 +3,23 @@ import { COLORS } from '../utils/colors';
 import { TEMPLATES } from '../utils/templates';
 import { CategoryPicker, ColorPicker, GoalPicker, IconPicker, ReminderInput } from './HabitFields';
 
-const AddHabitForm = forwardRef(function AddHabitForm({ onAdd, existingNames = [] }, inputRef) {
+const AddHabitForm = forwardRef(function AddHabitForm(
+  {
+    onAdd,
+    existingNames = [],
+    initialCategory = 'other',
+    initialGoal = 7,
+    onDone,
+    className = 'card p-5',
+    autoFocus = false,
+  },
+  inputRef,
+) {
   const [name, setName] = useState('');
   const [color, setColor] = useState(COLORS[0]);
-  const [weeklyGoal, setWeeklyGoal] = useState(7);
+  const [weeklyGoal, setWeeklyGoal] = useState(initialGoal);
   const [icon, setIcon] = useState('');
-  const [category, setCategory] = useState('other');
+  const [category, setCategory] = useState(initialCategory);
   const [reminderTime, setReminderTime] = useState('');
   const [showMore, setShowMore] = useState(false);
   const [saving, setSaving] = useState(false);
@@ -37,6 +48,7 @@ const AddHabitForm = forwardRef(function AddHabitForm({ onAdd, existingNames = [
       setName('');
       setIcon('');
       setReminderTime('');
+      onDone?.();
     } catch (err) {
       setError(
         err.response?.data?.error || 'Could not add habit. Check that the server is running.',
@@ -47,7 +59,7 @@ const AddHabitForm = forwardRef(function AddHabitForm({ onAdd, existingNames = [
   }
 
   return (
-    <form onSubmit={handleSubmit} className="card p-5">
+    <form onSubmit={handleSubmit} className={className}>
       <div className="flex flex-col gap-3 sm:flex-row">
         <div className="relative flex-1">
           {icon && (
@@ -57,6 +69,7 @@ const AddHabitForm = forwardRef(function AddHabitForm({ onAdd, existingNames = [
           )}
           <input
             ref={inputRef}
+            autoFocus={autoFocus}
             value={name}
             onChange={(e) => setName(e.target.value)}
             placeholder="New habit, e.g. Read 20 pages"
