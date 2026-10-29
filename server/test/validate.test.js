@@ -72,3 +72,25 @@ test('parseImport cleans dates and reports the bad habit', () => {
   const tooMany = Array.from({ length: MAX_IMPORT_HABITS + 1 }, () => ({ name: 'x' }));
   assert.match(parseImport({ habits: tooMany }).error, /at most/);
 });
+
+test('parseHabitFields handles icon, category and reminder time', () => {
+  const { values } = parseHabitFields({
+    name: 'Yoga',
+    icon: ' 🧘‍♀️ ',
+    category: 'fitness',
+    reminderTime: '07:30',
+  });
+  assert.deepEqual(values, { name: 'Yoga', icon: '🧘‍♀️', category: 'fitness', reminderTime: '07:30' });
+
+  // empty or null clears icon and reminder
+  assert.deepEqual(parseHabitFields({ icon: null, reminderTime: '' }, { partial: true }).values, {
+    icon: '',
+    reminderTime: '',
+  });
+
+  assert.match(parseHabitFields({ name: 'A', icon: 'way too long' }).error, /single emoji/);
+  assert.match(parseHabitFields({ name: 'A', icon: 5 }).error, /Icon must be text/);
+  assert.match(parseHabitFields({ name: 'A', category: 'sports' }).error, /Category must be/);
+  assert.match(parseHabitFields({ name: 'A', reminderTime: '24:00' }).error, /HH:mm/);
+  assert.match(parseHabitFields({ name: 'A', reminderTime: '7:30' }).error, /HH:mm/);
+});

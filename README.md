@@ -15,6 +15,11 @@ Streakly is a simple habit tracker. You add the habits you want to build, tick t
 - Stats view: 30-day completion, perfect days, top streak, an all-habits heatmap, completion by weekday, and a per-habit table
 - Reorder habits (move up / down) and archive the ones you've paused, with undo
 - Light, dark and system themes
+- Welcome panel with a greeting, today's progress ring and a quote of the day
+- Emoji icon and category per habit, plus search, category filters and a "To do today" filter
+- Achievements (streak, total and perfect-week badges) with confetti when you unlock one or finish the day
+- Optional daily reminder time per habit: a browser notification while Streakly is open in a tab
+- Keyboard shortcuts: `n` new habit, `/` search, `h` / `s` switch views, `t` theme, `?` help
 - Account settings: change name or password, export / import your data as JSON, delete your account
 - Today's progress bar ("Today: 2 / 3 done")
 - Toggling updates the UI instantly and rolls back if the request fails
@@ -132,8 +137,8 @@ Everything except `/api/health`, register and login needs an `Authorization: Bea
 | Method | Route         | Description                                                                 |
 | ------ | ------------- | --------------------------------------------------------------------------- |
 | GET    | `/`           | All your habits (archived included), in your chosen order                   |
-| POST   | `/`           | Create `{ name, color?, weeklyGoal? }`, goes to the top of the list         |
-| PUT    | `/:id`        | Update any of `name`, `color`, `weeklyGoal` (1 to 7), `archived` (boolean)  |
+| POST   | `/`           | Create `{ name, color?, weeklyGoal?, icon?, category?, reminderTime? }`, goes to the top of the list |
+| PUT    | `/:id`        | Update any of `name`, `color`, `weeklyGoal` (1 to 7), `archived`, `icon`, `category`, `reminderTime` (`HH:mm`) |
 | DELETE | `/:id`        | Delete a habit                                                              |
 | PATCH  | `/:id/toggle` | Body `{ date: "YYYY-MM-DD" }`, adds or removes the date                     |
 | PUT    | `/reorder`    | Body `{ ids: [...] }`, your habit ids in the new order                      |

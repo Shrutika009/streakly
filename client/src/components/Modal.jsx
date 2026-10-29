@@ -25,7 +25,7 @@ export default function Modal({ title, onClose, children, wide = false }) {
         role="dialog"
         aria-modal="true"
         aria-label={typeof title === 'string' ? title : undefined}
-        className={`card max-h-[90vh] w-full overflow-y-auto p-6 shadow-xl ${wide ? 'max-w-lg' : 'max-w-md'}`}
+        className={`card max-h-[90vh] w-full overflow-x-hidden overflow-y-auto p-6 shadow-xl ${wide ? 'max-w-lg' : 'max-w-md'}`}
         onClick={(e) => e.stopPropagation()}
       >
         <div className="flex items-center justify-between gap-4">

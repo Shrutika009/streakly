@@ -27,13 +27,30 @@ export default function WeekDots({ dates, color, onToggle, weekOffset = 0 }) {
               aria-label={`${day.format('dddd')} ${done ? 'done' : 'not done'}`}
               aria-pressed={done}
               className={`h-8 w-8 rounded-full border-2 transition sm:h-9 sm:w-9 ${
-                isFuture ? 'cursor-not-allowed opacity-30' : 'hover:scale-110'
+                isFuture ? 'cursor-not-allowed opacity-30' : 'hover:scale-110 active:scale-90'
               } ${isToday ? 'ring-2 ring-stone-300 ring-offset-2 dark:ring-stone-600 dark:ring-offset-stone-900' : ''}`}
               style={{
                 borderColor: color,
                 backgroundColor: done ? color : 'transparent',
               }}
-            />
+            >
+              {done && (
+                <svg
+                  className="mx-auto h-4 w-4 text-white"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                  aria-hidden="true"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={3}
+                    d="M5 13l4 4L19 7"
+                  />
+                </svg>
+              )}
+            </button>
           </div>
         );
       })}

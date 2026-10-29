@@ -40,7 +40,7 @@ export default function StatsView({ habits }) {
           value={o.topStreak ? o.topStreak.days : 0}
           note={o.topStreak ? o.topStreak.name : 'tick today to start one'}
         />
-        <StatTile label="Active habits" value={o.activeHabits} note="not counting archived" />
+        <StatTile label="Active habits" value={o.activeHabits} note="excl. archived" />
       </div>
 
       <section className="card p-5">

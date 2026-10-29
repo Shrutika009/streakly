@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import * as api from './api/habits';
 import * as authApi from './api/auth';
 import useTheme from './hooks/useTheme';
@@ -13,15 +13,25 @@ import AuthModal from './components/AuthModal';
 import SettingsModal from './components/SettingsModal';
 import Toasts from './components/Toasts';
 import useToasts from './hooks/useToasts';
+import useShortcuts from './hooks/useShortcuts';
+import useReminders from './hooks/useReminders';
+import Footer from './components/Footer';
+import Achievements from './components/Achievements';
+import ShortcutsModal from './components/ShortcutsModal';
+import { newlyUnlocked } from './utils/achievements';
+import { fireConfetti } from './utils/confetti';
+import { todayStr } from './utils/streak';
 
 function errorMessage(err, fallback) {
   return err.response?.data?.error || fallback;
 }
 
 const VIEWS = [
-  { id: 'habits', label: 'Habits' },
-  { id: 'stats', label: 'Stats' },
+  { id: 'habits', label: 'Habits', icon: '✅' },
+  { id: 'stats', label: 'Stats', icon: '📊' },
 ];
+
+const NEXT_THEME = { light: 'dark', dark: 'system', system: 'light' };
 
 export default function App() {
   const [theme, setTheme] = useTheme();
@@ -33,10 +43,33 @@ export default function App() {
   const [error, setError] = useState('');
   const [editing, setEditing] = useState(null);
   const [view, setView] = useState('habits');
+  const [shortcutsOpen, setShortcutsOpen] = useState(false);
   const { toasts, show: showToast, dismiss: dismissToast } = useToasts();
+  const addInputRef = useRef(null);
+  const searchRef = useRef(null);
 
   const active = habits.filter((h) => !h.archived);
   const archived = habits.filter((h) => h.archived);
+
+  useReminders(habits, showToast);
+
+  // Switches to the habits view if needed, then focuses a field there.
+  function focusOnHabits(ref) {
+    setView('habits');
+    setTimeout(() => ref.current?.focus(), 0);
+  }
+
+  useShortcuts(
+    {
+      n: () => focusOnHabits(addInputRef),
+      '/': () => focusOnHabits(searchRef),
+      h: () => setView('habits'),
+      s: () => setView('stats'),
+      t: () => setTheme(NEXT_THEME[theme]),
+      '?': () => setShortcutsOpen(true),
+    },
+    Boolean(user),
+  );
 
   const loadHabits = useCallback(async () => {
     try {
@@ -79,6 +112,7 @@ export default function App() {
     setHabits([]);
     setView('habits');
     setSettingsOpen(false);
+    setShortcutsOpen(false);
   }
 
   function handleAccountDeleted() {
@@ -105,7 +139,20 @@ export default function App() {
         };
       });
 
+    // celebrate new badges, and finishing every habit for today
+    const before = habits.filter((h) => !h.archived);
+    const after = flip(habits).filter((h) => !h.archived);
+    const badges = newlyUnlocked(before, after);
+    const today = todayStr();
+    const allDone = (list) =>
+      list.length > 0 && list.every((h) => h.completedDates.includes(today));
+    const finishedDay = date === today && !allDone(before) && allDone(after);
+
     setHabits(flip);
+    if (badges.length || finishedDay) fireConfetti();
+    for (const badge of badges) showToast(`${badge.emoji} Achievement unlocked: ${badge.title}`);
+    if (finishedDay) showToast('🎉 Every habit done for today. Nice work!');
+
     try {
       const updated = await api.toggleHabit(id, date);
       setHabits((prev) => prev.map((h) => (h._id === id ? updated : h)));
@@ -183,17 +230,21 @@ export default function App() {
   }
 
   return (
-    <div className="min-h-screen px-4 py-8 sm:py-12">
-      <main className="mx-auto max-w-2xl space-y-6">
-        <Header
-          user={user}
-          theme={theme}
-          onThemeChange={setTheme}
-          onOpenAuth={() => setAuthOpen(true)}
-          onOpenSettings={() => setSettingsOpen(true)}
-          onLogout={handleLogout}
-        />
+    <div className="flex min-h-screen flex-col">
+      <Header
+        user={user}
+        theme={theme}
+        onThemeChange={setTheme}
+        views={VIEWS}
+        view={view}
+        onViewChange={setView}
+        onOpenAuth={() => setAuthOpen(true)}
+        onOpenSettings={() => setSettingsOpen(true)}
+        onOpenShortcuts={() => setShortcutsOpen(true)}
+        onLogout={handleLogout}
+      />
 
+      <main className="mx-auto w-full max-w-2xl flex-1 space-y-6 px-4 py-6 sm:py-8">
         {error && (
           <div className="flex items-start justify-between gap-4 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700 dark:border-red-500/30 dark:bg-red-500/10 dark:text-red-300">
             <span>{error}</span>
@@ -207,33 +258,13 @@ export default function App() {
           <p className="py-16 text-center text-stone-400 dark:text-stone-500">Loading habits...</p>
         ) : user ? (
           <>
-            <TodaySummary habits={active} />
-
-            <nav
-              className="flex gap-1 rounded-xl bg-stone-100 p-1 dark:bg-stone-900"
-              aria-label="Views"
-            >
-              {VIEWS.map((v) => (
-                <button
-                  key={v.id}
-                  type="button"
-                  onClick={() => setView(v.id)}
-                  aria-current={view === v.id ? 'page' : undefined}
-                  className={`flex-1 rounded-lg py-1.5 text-sm font-medium transition ${
-                    view === v.id
-                      ? 'bg-white text-stone-900 shadow-sm dark:bg-stone-800 dark:text-stone-100'
-                      : 'text-stone-500 hover:text-stone-800 dark:text-stone-400 dark:hover:text-stone-200'
-                  }`}
-                >
-                  {v.label}
-                </button>
-              ))}
-            </nav>
+            <TodaySummary habits={active} userName={user.name} />
 
             {view === 'habits' ? (
               <>
-                <AddHabitForm onAdd={handleAdd} />
+                <AddHabitForm ref={addInputRef} onAdd={handleAdd} />
                 <HabitList
+                  ref={searchRef}
                   habits={active}
                   onToggle={handleToggle}
                   onEdit={setEditing}
@@ -248,19 +279,28 @@ export default function App() {
                 />
               </>
             ) : (
-              <StatsView habits={active} />
+              <div className="space-y-4">
+                <StatsView habits={active} />
+                <Achievements habits={active} />
+              </div>
             )}
           </>
         ) : (
           <div className="card p-8 text-center">
             <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-2xl bg-orange-100 text-orange-600 dark:bg-orange-500/15 dark:text-orange-400">
               <svg className="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M13 10V3L4 14h7v7l9-11h-7z"
+                />
               </svg>
             </div>
             <h2 className="heading mt-4 text-xl font-bold">Your personal daily habit tracker</h2>
             <p className="muted mx-auto mt-2 max-w-sm text-sm">
-              Sign in or create a free account to track your private habits, build streaks, and stay consistent.
+              Sign in or create a free account to track your private habits, build streaks, and stay
+              consistent.
             </p>
             <div className="mt-6 flex justify-center gap-3">
               <button type="button" onClick={() => setAuthOpen(true)} className="btn-primary px-6">
@@ -270,6 +310,8 @@ export default function App() {
           </div>
         )}
       </main>
+
+      <Footer user={user} onOpenShortcuts={() => setShortcutsOpen(true)} />
 
       {editing && (
         <EditHabitModal habit={editing} onSave={handleSave} onClose={() => setEditing(null)} />
@@ -284,6 +326,8 @@ export default function App() {
           onAccountDeleted={handleAccountDeleted}
         />
       )}
+
+      {shortcutsOpen && <ShortcutsModal onClose={() => setShortcutsOpen(false)} />}
 
       <AuthModal
         isOpen={authOpen}

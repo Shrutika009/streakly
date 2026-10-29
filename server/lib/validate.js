@@ -1,7 +1,12 @@
 const DATE_RE = /^\d{4}-\d{2}-\d{2}$/;
 const HEX_COLOR_RE = /^#([0-9a-fA-F]{3}|[0-9a-fA-F]{6})$/;
 
+const TIME_RE = /^([01]\d|2[0-3]):[0-5]\d$/;
+
 const MAX_NAME_LENGTH = 60;
+const MAX_ICON_LENGTH = 8;
+// keep in sync with CATEGORIES in client/src/utils/categories.js
+const CATEGORIES = ['health', 'fitness', 'mind', 'learning', 'work', 'home', 'social', 'other'];
 const MAX_IMPORT_HABITS = 500;
 
 // Checks the format and that the day actually exists (no 2026-02-30).
@@ -24,7 +29,7 @@ function isValidWeeklyGoal(value) {
 // (for PUT); without it, name is required (for POST and import).
 // Returns { error } or { values }.
 function parseHabitFields(body, { partial = false } = {}) {
-  const { name, color, weeklyGoal, archived } = body || {};
+  const { name, color, weeklyGoal, archived, icon, category, reminderTime } = body || {};
   const values = {};
 
   if (name !== undefined || !partial) {
@@ -58,6 +63,32 @@ function parseHabitFields(body, { partial = false } = {}) {
     values.archived = archived;
   }
 
+  // icon and reminderTime accept '' or null to clear them
+  if (icon !== undefined) {
+    if (icon !== null && typeof icon !== 'string') {
+      return { error: 'Icon must be text, like an emoji' };
+    }
+    const trimmed = (icon || '').trim();
+    if ([...trimmed].length > MAX_ICON_LENGTH) {
+      return { error: 'Icon must be a single emoji' };
+    }
+    values.icon = trimmed;
+  }
+
+  if (category !== undefined) {
+    if (!CATEGORIES.includes(category)) {
+      return { error: `Category must be one of: ${CATEGORIES.join(', ')}` };
+    }
+    values.category = category;
+  }
+
+  if (reminderTime !== undefined) {
+    if (reminderTime !== null && reminderTime !== '' && !TIME_RE.test(reminderTime)) {
+      return { error: 'Reminder time must be HH:mm in 24-hour time (e.g. 07:30)' };
+    }
+    values.reminderTime = reminderTime || '';
+  }
+
   return { values };
 }
 
@@ -85,6 +116,7 @@ function parseImport(body) {
 }
 
 module.exports = {
+  CATEGORIES,
   HEX_COLOR_RE,
   MAX_NAME_LENGTH,
   MAX_IMPORT_HABITS,

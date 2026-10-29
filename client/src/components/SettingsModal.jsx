@@ -3,6 +3,7 @@ import dayjs from 'dayjs';
 import * as authApi from '../api/auth';
 import * as habitsApi from '../api/habits';
 import Modal from './Modal';
+import { notificationsSupported } from '../hooks/useReminders';
 
 function errorMessage(err, fallback) {
   return err.response?.data?.error || fallback;
@@ -14,7 +15,9 @@ function Status({ status }) {
   return (
     <p
       className={`mt-2 text-sm ${
-        status.type === 'ok' ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'
+        status.type === 'ok'
+          ? 'text-green-600 dark:text-green-400'
+          : 'text-red-600 dark:text-red-400'
       }`}
     >
       {status.text}
@@ -37,13 +40,20 @@ function Section({ title, children, danger = false }) {
   );
 }
 
-export default function SettingsModal({ user, onClose, onUserUpdated, onImported, onAccountDeleted }) {
+export default function SettingsModal({
+  user,
+  onClose,
+  onUserUpdated,
+  onImported,
+  onAccountDeleted,
+}) {
   return (
     <Modal title="Account settings" onClose={onClose} wide>
       <p className="muted mt-1 text-sm">{user.email}</p>
       <div className="mt-5 space-y-5">
         <ProfileSection user={user} onUserUpdated={onUserUpdated} />
         <PasswordSection />
+        <RemindersSection />
         <DataSection onImported={onImported} />
         <DeleteSection onAccountDeleted={onAccountDeleted} />
       </div>
@@ -87,7 +97,11 @@ function ProfileSection({ user, onUserUpdated }) {
           maxLength={40}
           className="input flex-1"
         />
-        <button type="submit" disabled={saving || unchanged || !name.trim()} className="btn-primary">
+        <button
+          type="submit"
+          disabled={saving || unchanged || !name.trim()}
+          className="btn-primary"
+        >
           {saving ? 'Saving...' : 'Save'}
         </button>
       </form>
@@ -172,6 +186,51 @@ function PasswordSection() {
         </div>
       </form>
       <Status status={status} />
+    </Section>
+  );
+}
+
+function RemindersSection() {
+  const supported = notificationsSupported();
+  const [permission, setPermission] = useState(supported ? Notification.permission : 'unsupported');
+
+  async function enable() {
+    const result = await Notification.requestPermission();
+    setPermission(result);
+    if (result === 'granted') {
+      new Notification('🔔 Reminders are on', {
+        body: "You'll get a nudge at each habit's reminder time.",
+      });
+    }
+  }
+
+  return (
+    <Section title="Reminders">
+      <p className="muted mb-3 text-sm">
+        Set a reminder time on any habit (Edit → Daily reminder). Reminders appear while Streakly is
+        open in a browser tab, and are skipped if the habit is already done.
+      </p>
+      {permission === 'granted' && (
+        <p className="text-sm text-green-600 dark:text-green-400">
+          ✓ System notifications are on for this browser.
+        </p>
+      )}
+      {permission === 'default' && (
+        <button type="button" onClick={enable} className="btn-secondary">
+          Turn on system notifications
+        </button>
+      )}
+      {permission === 'denied' && (
+        <p className="text-sm text-stone-600 dark:text-stone-300">
+          Notifications are blocked in your browser settings, so reminders show inside the app
+          instead.
+        </p>
+      )}
+      {permission === 'unsupported' && (
+        <p className="text-sm text-stone-600 dark:text-stone-300">
+          This browser doesn't support notifications, so reminders show inside the app instead.
+        </p>
+      )}
     </Section>
   );
 }

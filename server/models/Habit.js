@@ -1,5 +1,5 @@
 const mongoose = require('mongoose');
-const { HEX_COLOR_RE } = require('../lib/validate');
+const { CATEGORIES, HEX_COLOR_RE } = require('../lib/validate');
 
 const habitSchema = new mongoose.Schema(
   {
@@ -10,6 +10,11 @@ const habitSchema = new mongoose.Schema(
       default: '#f97316',
       match: [HEX_COLOR_RE, 'Color must be a valid hex code (e.g. #f97316)'],
     },
+    // a single emoji shown next to the name; '' means none
+    icon: { type: String, default: '', trim: true },
+    category: { type: String, enum: CATEGORIES, default: 'other' },
+    // "HH:mm" local time for a browser reminder; '' means no reminder
+    reminderTime: { type: String, default: '' },
     // how many days a week the user is aiming for (7 = every day)
     weeklyGoal: { type: Number, default: 7, min: 1, max: 7 },
     // stored as YYYY-MM-DD strings so the client's local date is what counts
