@@ -19,6 +19,8 @@ const habitSchema = new mongoose.Schema(
     weeklyGoal: { type: Number, default: 7, min: 1, max: 7 },
     // stored as YYYY-MM-DD strings so the client's local date is what counts
     completedDates: { type: [String], default: [] },
+    // short notes keyed by YYYY-MM-DD, e.g. { "2026-10-29": "Ran 5k in the rain" }
+    notes: { type: Map, of: String, default: {} },
     archived: { type: Boolean, default: false },
     // lower comes first; new habits get the lowest so they land on top
     order: { type: Number, default: 0 },

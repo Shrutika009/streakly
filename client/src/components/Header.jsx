@@ -1,20 +1,11 @@
 import ThemeToggle from './ThemeToggle';
 import HabitMenu from './HabitMenu';
 
+// Text wordmark, same as the original header.
 function Logo() {
   return (
-    <a href="/" className="flex items-center gap-2" aria-label="Streakly home">
-      <span className="flex h-8 w-8 items-center justify-center rounded-xl bg-gradient-to-br from-orange-400 to-orange-600 text-white shadow-sm">
-        <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            strokeWidth={2.5}
-            d="M13 10V3L4 14h7v7l9-11h-7z"
-          />
-        </svg>
-      </span>
-      <span className="heading text-lg font-bold tracking-tight">
+    <a href="/" aria-label="Streakly home">
+      <span className="heading text-2xl font-bold tracking-tight">
         Streak<span className="text-orange-500">ly</span>
       </span>
     </a>
@@ -39,9 +30,6 @@ function ViewTabs({ views, view, onChange, className = '' }) {
               : 'text-stone-500 hover:text-stone-800 dark:text-stone-400 dark:hover:text-stone-200'
           }`}
         >
-          <span aria-hidden="true" className="mr-1.5">
-            {v.icon}
-          </span>
           {v.label}
         </button>
       ))}

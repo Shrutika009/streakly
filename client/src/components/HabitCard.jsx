@@ -3,6 +3,7 @@ import dayjs from 'dayjs';
 import { currentStreak, longestStreak, weekCount } from '../utils/streak';
 import WeekDots from './WeekDots';
 import YearHeatmap from './YearHeatmap';
+import MonthCalendar from './MonthCalendar';
 import HabitMenu from './HabitMenu';
 import { goalLabel } from '../utils/goals';
 import { categoryFor } from '../utils/categories';
@@ -10,6 +11,7 @@ import { categoryFor } from '../utils/categories';
 export default function HabitCard({
   habit,
   onToggle,
+  onOpenNote,
   onEdit,
   onDelete,
   onArchive,
@@ -19,6 +21,7 @@ export default function HabitCard({
   weekOffset = 0,
 }) {
   const [showHistory, setShowHistory] = useState(false);
+  const [historyView, setHistoryView] = useState('year');
   const current = currentStreak(habit.completedDates);
   const best = longestStreak(habit.completedDates);
   const goal = habit.weeklyGoal || 7;
@@ -33,6 +36,8 @@ export default function HabitCard({
   }
 
   const done = new Set(habit.completedDates);
+  const today = dayjs().format('YYYY-MM-DD');
+  const todayNote = habit.notes?.[today];
   const yearStart = dayjs().subtract(52, 'week').format('YYYY-MM-DD');
   const yearTotal = habit.completedDates.filter((d) => d >= yearStart).length;
 
@@ -110,6 +115,10 @@ export default function HabitCard({
                 className: 'sm:hidden',
               },
               { label: 'Edit', onClick: () => onEdit(habit), className: 'sm:hidden' },
+              {
+                label: todayNote ? "Edit today's note" : 'Add a note for today',
+                onClick: () => onOpenNote(habit, today),
+              },
               { label: 'Move up', onClick: () => onMove(habit._id, -1), disabled: !canMoveUp },
               { label: 'Move down', onClick: () => onMove(habit._id, 1), disabled: !canMoveDown },
               { label: 'Archive', onClick: () => onArchive(habit._id, true) },
@@ -126,19 +135,54 @@ export default function HabitCard({
         onToggle={(date) => onToggle(habit._id, date)}
       />
 
+      {todayNote && (
+        <button
+          type="button"
+          onClick={() => onOpenNote(habit, today)}
+          className="mt-3 w-full rounded-lg bg-stone-50 px-3 py-2 text-left text-sm text-stone-600 transition hover:bg-stone-100 dark:bg-stone-800/60 dark:text-stone-300 dark:hover:bg-stone-800"
+        >
+          <span className="mr-2 text-xs font-semibold uppercase tracking-wide text-stone-400 dark:text-stone-500">
+            Today
+          </span>
+          {todayNote}
+        </button>
+      )}
+
       {showHistory && (
         <div className="mt-4 border-t border-stone-100 pt-4 dark:border-stone-800">
-          <YearHeatmap
-            color={habit.color}
-            getLevel={(date) => (done.has(date) ? 1 : 0)}
-            tooltip={(day, level) => `${day.format('ddd, D MMM YYYY')}${level ? ' · done' : ''}`}
-            summary={
-              <>
-                <strong className="text-stone-700 dark:text-stone-200">{yearTotal}</strong>{' '}
-                {yearTotal === 1 ? 'day' : 'days'} done in the last year
-              </>
-            }
-          />
+          <div className="mb-3 inline-flex gap-1 rounded-lg bg-stone-100 p-0.5 text-xs dark:bg-stone-800">
+            {['year', 'month'].map((v) => (
+              <button
+                key={v}
+                type="button"
+                onClick={() => setHistoryView(v)}
+                aria-pressed={historyView === v}
+                className={`rounded-md px-3 py-1 font-medium capitalize transition ${
+                  historyView === v
+                    ? 'bg-white text-stone-900 shadow-sm dark:bg-stone-700 dark:text-stone-100'
+                    : 'text-stone-500 hover:text-stone-800 dark:text-stone-400 dark:hover:text-stone-200'
+                }`}
+              >
+                {v}
+              </button>
+            ))}
+          </div>
+
+          {historyView === 'month' ? (
+            <MonthCalendar habit={habit} onToggle={onToggle} onOpenNote={onOpenNote} />
+          ) : (
+            <YearHeatmap
+              color={habit.color}
+              getLevel={(date) => (done.has(date) ? 1 : 0)}
+              tooltip={(day, level) => `${day.format('ddd, D MMM YYYY')}${level ? ' · done' : ''}`}
+              summary={
+                <>
+                  <strong className="text-stone-700 dark:text-stone-200">{yearTotal}</strong>{' '}
+                  {yearTotal === 1 ? 'day' : 'days'} done in the last year
+                </>
+              }
+            />
+          )}
         </div>
       )}
     </article>

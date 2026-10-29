@@ -5,6 +5,8 @@ const TIME_RE = /^([01]\d|2[0-3]):[0-5]\d$/;
 
 const MAX_NAME_LENGTH = 60;
 const MAX_ICON_LENGTH = 8;
+const MAX_NOTE_LENGTH = 280;
+const MAX_NOTES = 2000;
 // keep in sync with CATEGORIES in client/src/utils/categories.js
 const CATEGORIES = ['health', 'fitness', 'mind', 'learning', 'work', 'home', 'social', 'other'];
 const MAX_IMPORT_HABITS = 500;
@@ -92,6 +94,35 @@ function parseHabitFields(body, { partial = false } = {}) {
   return { values };
 }
 
+// Body for saving one day's note. Empty text means "delete the note".
+// Returns { error } or { date, text }.
+function parseNote(body) {
+  const { date, text } = body || {};
+  if (!isValidDate(date)) {
+    return { error: 'date must be a real day in YYYY-MM-DD format' };
+  }
+  if (typeof text !== 'string') {
+    return { error: 'text must be a string' };
+  }
+  const trimmed = text.trim();
+  if (trimmed.length > MAX_NOTE_LENGTH) {
+    return { error: `Notes must be ${MAX_NOTE_LENGTH} characters or less` };
+  }
+  return { date, text: trimmed };
+}
+
+// Keeps only well-formed notes from an import file.
+function cleanNotes(notes) {
+  if (!notes || typeof notes !== 'object' || Array.isArray(notes)) return {};
+  const clean = {};
+  for (const [date, text] of Object.entries(notes).slice(0, MAX_NOTES)) {
+    if (isValidDate(date) && typeof text === 'string' && text.trim()) {
+      clean[date] = text.trim().slice(0, MAX_NOTE_LENGTH);
+    }
+  }
+  return clean;
+}
+
 // Turns an exported file back into habit documents, dropping bad dates
 // instead of rejecting the whole file. Returns { error } or { habits }.
 function parseImport(body) {
@@ -110,6 +141,7 @@ function parseImport(body) {
 
     const dates = Array.isArray(item.completedDates) ? item.completedDates : [];
     values.completedDates = [...new Set(dates.filter(isValidDate))].sort();
+    values.notes = cleanNotes(item.notes);
     habits.push(values);
   }
   return { habits };
@@ -120,9 +152,12 @@ module.exports = {
   HEX_COLOR_RE,
   MAX_NAME_LENGTH,
   MAX_IMPORT_HABITS,
+  MAX_NOTE_LENGTH,
   isValidDate,
   isValidColor,
   isValidWeeklyGoal,
   parseHabitFields,
   parseImport,
+  parseNote,
+  cleanNotes,
 };

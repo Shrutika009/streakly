@@ -63,7 +63,9 @@ test('parseImport cleans dates and reports the bad habit', () => {
       },
     ],
   });
-  assert.deepEqual(habits, [{ name: 'Run', completedDates: ['2026-10-01', '2026-10-02'] }]);
+  assert.deepEqual(habits, [
+    { name: 'Run', completedDates: ['2026-10-01', '2026-10-02'], notes: {} },
+  ]);
 
   assert.match(parseImport({ habits: [{ name: 'A' }, { name: '' }] }).error, /^Habit 2:/);
   assert.match(parseImport({}).error, /no habits/);
@@ -93,4 +95,21 @@ test('parseHabitFields handles icon, category and reminder time', () => {
   assert.match(parseHabitFields({ name: 'A', category: 'sports' }).error, /Category must be/);
   assert.match(parseHabitFields({ name: 'A', reminderTime: '24:00' }).error, /HH:mm/);
   assert.match(parseHabitFields({ name: 'A', reminderTime: '7:30' }).error, /HH:mm/);
+});
+
+test('parseNote validates the day and trims the text', () => {
+  const { parseNote, cleanNotes, MAX_NOTE_LENGTH } = require('../lib/validate');
+  assert.deepEqual(parseNote({ date: '2026-10-29', text: '  Ran 5k  ' }), {
+    date: '2026-10-29',
+    text: 'Ran 5k',
+  });
+  assert.deepEqual(parseNote({ date: '2026-10-29', text: '' }), { date: '2026-10-29', text: '' });
+  assert.match(parseNote({ date: '2026-02-30', text: 'x' }).error, /real day/);
+  assert.match(parseNote({ date: '2026-10-29' }).error, /string/);
+  assert.match(parseNote({ date: '2026-10-29', text: 'x'.repeat(MAX_NOTE_LENGTH + 1) }).error, /or less/);
+
+  assert.deepEqual(cleanNotes({ '2026-10-29': ' ok ', bad: 'x', '2026-10-28': '', '2026-10-27': 5 }), {
+    '2026-10-29': 'ok',
+  });
+  assert.deepEqual(cleanNotes(['a']), {});
 });

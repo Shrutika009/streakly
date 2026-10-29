@@ -118,3 +118,30 @@ export function overview(habits, today = todayStr()) {
     topStreak: top && top.current > 0 ? { name: top.habit.name, days: top.current } : null,
   };
 }
+
+// This week so far (Monday to today) against the same days last week,
+// so a Wednesday compares Mon–Wed with last Mon–Wed.
+export function weekComparison(habits, today = todayStr()) {
+  const end = dayjs(today);
+  const daysIn = ((end.day() + 6) % 7) + 1; // Mon = 1 ... Sun = 7
+  const thisWeek = lastDays(daysIn, today);
+  const lastWeek = lastDays(daysIn, end.subtract(7, 'day').format(FORMAT));
+
+  const now = completion(habits, thisWeek);
+  const before = completion(habits, lastWeek);
+
+  let best = null;
+  for (const habit of habits) {
+    const { rate, possible } = completion([habit], thisWeek);
+    if (possible && (!best || rate > best.rate)) best = { name: habit.name, rate };
+  }
+
+  return {
+    days: daysIn,
+    thisWeek: now,
+    lastWeek: before,
+    // percentage points; null when there's nothing to compare against
+    change: before.possible ? Math.round((now.rate - before.rate) * 100) : null,
+    best,
+  };
+}

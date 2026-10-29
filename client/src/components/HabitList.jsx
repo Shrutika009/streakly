@@ -89,7 +89,7 @@ function FilterBar({
 }
 
 const HabitList = forwardRef(function HabitList(
-  { habits, onToggle, onEdit, onDelete, onArchive, onMove },
+  { habits, onToggle, onEdit, onDelete, onArchive, onMove, onOpenNote },
   searchRef,
 ) {
   const [weekOffset, setWeekOffset] = useState(0);
@@ -234,6 +234,7 @@ const HabitList = forwardRef(function HabitList(
                   habit={habit}
                   weekOffset={weekOffset}
                   onToggle={onToggle}
+                  onOpenNote={onOpenNote}
                   onEdit={onEdit}
                   onDelete={onDelete}
                   onArchive={onArchive}

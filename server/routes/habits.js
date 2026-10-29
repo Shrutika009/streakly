@@ -2,7 +2,7 @@ const express = require('express');
 const mongoose = require('mongoose');
 const Habit = require('../models/Habit');
 const auth = require('../middleware/auth');
-const { isValidDate, parseHabitFields, parseImport } = require('../lib/validate');
+const { isValidDate, parseHabitFields, parseImport, parseNote } = require('../lib/validate');
 
 const router = express.Router();
 
@@ -94,6 +94,7 @@ router.get('/export', async (req, res) => {
         reminderTime: h.reminderTime,
         archived: h.archived,
         completedDates: [...h.completedDates].sort(),
+        notes: Object.fromEntries(h.notes || []),
         createdAt: h.createdAt,
       })),
     });
@@ -165,6 +166,24 @@ router.patch('/:id/toggle', async (req, res) => {
     } else {
       habit.completedDates.push(date);
     }
+    await habit.save();
+    res.json(habit);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// Body { date, text }. Saves the note for that day; empty text removes it.
+router.put('/:id/note', async (req, res) => {
+  try {
+    const { error, date, text } = parseNote(req.body);
+    if (error) return res.status(400).json({ error });
+
+    const habit = await Habit.findOne({ _id: req.params.id, user: req.user.id });
+    if (!habit) return res.status(404).json({ error: 'Habit not found' });
+
+    if (text) habit.notes.set(date, text);
+    else habit.notes.delete(date);
     await habit.save();
     res.json(habit);
   } catch (err) {

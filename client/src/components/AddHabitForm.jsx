@@ -1,8 +1,9 @@
 import { forwardRef, useState } from 'react';
 import { COLORS } from '../utils/colors';
+import { TEMPLATES } from '../utils/templates';
 import { CategoryPicker, ColorPicker, GoalPicker, IconPicker, ReminderInput } from './HabitFields';
 
-const AddHabitForm = forwardRef(function AddHabitForm({ onAdd }, inputRef) {
+const AddHabitForm = forwardRef(function AddHabitForm({ onAdd, existingNames = [] }, inputRef) {
   const [name, setName] = useState('');
   const [color, setColor] = useState(COLORS[0]);
   const [weeklyGoal, setWeeklyGoal] = useState(7);
@@ -12,6 +13,18 @@ const AddHabitForm = forwardRef(function AddHabitForm({ onAdd }, inputRef) {
   const [showMore, setShowMore] = useState(false);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
+
+  const taken = new Set(existingNames.map((n) => n.toLowerCase()));
+  const ideas = TEMPLATES.filter((t) => !taken.has(t.name.toLowerCase())).slice(0, 6);
+
+  function applyTemplate(t) {
+    setName(t.name);
+    setIcon(t.icon);
+    setCategory(t.category);
+    setWeeklyGoal(t.weeklyGoal);
+    setColor(t.color);
+    inputRef?.current?.focus();
+  }
 
   async function handleSubmit(e) {
     e.preventDefault();
@@ -56,6 +69,25 @@ const AddHabitForm = forwardRef(function AddHabitForm({ onAdd }, inputRef) {
           {saving ? 'Adding...' : 'Add habit'}
         </button>
       </div>
+
+      {!name && ideas.length > 0 && (
+        <div className="mt-3 flex flex-wrap items-center gap-1.5">
+          <span className="muted mr-1 text-xs">Need ideas?</span>
+          {ideas.map((t) => (
+            <button
+              key={t.name}
+              type="button"
+              onClick={() => applyTemplate(t)}
+              className="rounded-full bg-stone-100 px-2.5 py-1 text-xs text-stone-600 transition hover:bg-orange-100 hover:text-orange-700 dark:bg-stone-800 dark:text-stone-300 dark:hover:bg-orange-500/15 dark:hover:text-orange-300"
+            >
+              <span aria-hidden="true" className="mr-1">
+                {t.icon}
+              </span>
+              {t.name}
+            </button>
+          ))}
+        </div>
+      )}
 
       <div className="mt-4 flex flex-wrap items-center gap-x-8 gap-y-3">
         <div className="flex items-center gap-2">

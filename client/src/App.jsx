@@ -21,14 +21,16 @@ import ShortcutsModal from './components/ShortcutsModal';
 import { newlyUnlocked } from './utils/achievements';
 import { fireConfetti } from './utils/confetti';
 import { todayStr } from './utils/streak';
+import NoteModal from './components/NoteModal';
+import WeeklyRecap from './components/WeeklyRecap';
 
 function errorMessage(err, fallback) {
   return err.response?.data?.error || fallback;
 }
 
 const VIEWS = [
-  { id: 'habits', label: 'Habits', icon: '✅' },
-  { id: 'stats', label: 'Stats', icon: '📊' },
+  { id: 'habits', label: 'Habits' },
+  { id: 'stats', label: 'Stats' },
 ];
 
 const NEXT_THEME = { light: 'dark', dark: 'system', system: 'light' };
@@ -44,6 +46,7 @@ export default function App() {
   const [editing, setEditing] = useState(null);
   const [view, setView] = useState('habits');
   const [shortcutsOpen, setShortcutsOpen] = useState(false);
+  const [noteTarget, setNoteTarget] = useState(null); // { habitId, date }
   const { toasts, show: showToast, dismiss: dismissToast } = useToasts();
   const addInputRef = useRef(null);
   const searchRef = useRef(null);
@@ -225,6 +228,12 @@ export default function App() {
     }
   }
 
+  async function handleSaveNote(id, date, text) {
+    const updated = await api.saveNote(id, date, text);
+    setHabits((prev) => prev.map((h) => (h._id === id ? updated : h)));
+    showToast(text ? 'Note saved.' : 'Note deleted.');
+  }
+
   function handleImported(imported) {
     setHabits((prev) => [...imported, ...prev]);
   }
@@ -262,7 +271,11 @@ export default function App() {
 
             {view === 'habits' ? (
               <>
-                <AddHabitForm ref={addInputRef} onAdd={handleAdd} />
+                <AddHabitForm
+                  ref={addInputRef}
+                  onAdd={handleAdd}
+                  existingNames={habits.map((h) => h.name)}
+                />
                 <HabitList
                   ref={searchRef}
                   habits={active}
@@ -271,6 +284,7 @@ export default function App() {
                   onDelete={handleDelete}
                   onArchive={handleArchive}
                   onMove={handleMove}
+                  onOpenNote={(habit, date) => setNoteTarget({ habitId: habit._id, date })}
                 />
                 <ArchivedList
                   habits={archived}
@@ -280,6 +294,7 @@ export default function App() {
               </>
             ) : (
               <div className="space-y-4">
+                <WeeklyRecap habits={active} userName={user.name} onShared={showToast} />
                 <StatsView habits={active} />
                 <Achievements habits={active} />
               </div>
@@ -324,6 +339,15 @@ export default function App() {
           onUserUpdated={setUser}
           onImported={handleImported}
           onAccountDeleted={handleAccountDeleted}
+        />
+      )}
+
+      {noteTarget && habits.some((h) => h._id === noteTarget.habitId) && (
+        <NoteModal
+          habit={habits.find((h) => h._id === noteTarget.habitId)}
+          date={noteTarget.date}
+          onSave={handleSaveNote}
+          onClose={() => setNoteTarget(null)}
         />
       )}
 

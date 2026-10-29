@@ -28,3 +28,6 @@ export const reorderHabits = (ids) => api.put('/reorder', { ids }).then((res) =>
 export const exportHabits = () => api.get('/export').then((res) => res.data);
 
 export const importHabits = (data) => api.post('/import', data).then((res) => res.data);
+
+export const saveNote = (id, date, text) =>
+  api.put(`/${id}/note`, { date, text }).then((res) => res.data);

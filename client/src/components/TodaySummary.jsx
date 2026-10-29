@@ -92,7 +92,7 @@ export default function TodaySummary({ habits, userName }) {
           “{quote.text}”
         </blockquote>
         <figcaption className="mt-1 text-xs text-stone-400 dark:text-stone-500">
-          — {quote.author}
+          {quote.author}
         </figcaption>
       </figure>
     </section>

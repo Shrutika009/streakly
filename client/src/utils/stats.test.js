@@ -83,3 +83,18 @@ test('overview picks the longest current streak', () => {
   assert.deepEqual(o.topStreak, { name: 'Read', days: 2 });
   assert.equal(overview([], TODAY).topStreak, null);
 });
+
+test('weekComparison lines up the same weekdays', async () => {
+  const { weekComparison } = await import('./stats.js');
+  // Tue 20 Oct: this week = Mon 19 + Tue 20, last week = Mon 12 + Tue 13
+  const h = habit(['2026-10-19', '2026-10-20', '2026-10-12'], '2026-10-01T00:00:00');
+  const c = weekComparison([h], TODAY);
+  assert.equal(c.days, 2);
+  assert.deepEqual([c.thisWeek.done, c.thisWeek.possible], [2, 2]);
+  assert.deepEqual([c.lastWeek.done, c.lastWeek.possible], [1, 2]);
+  assert.equal(c.change, 50);
+  assert.equal(c.best.name, 'Test');
+
+  const fresh = habit([TODAY], '2026-10-20T08:00:00');
+  assert.equal(weekComparison([fresh], TODAY).change, null);
+});

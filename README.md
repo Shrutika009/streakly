@@ -19,6 +19,11 @@ Streakly is a simple habit tracker. You add the habits you want to build, tick t
 - Emoji icon and category per habit, plus search, category filters and a "To do today" filter
 - Achievements (streak, total and perfect-week badges) with confetti when you unlock one or finish the day
 - Optional daily reminder time per habit: a browser notification while Streakly is open in a tab
+- "Need ideas?" starter habits that fill in the name, icon, category and goal for you
+- A short note on any day ("Ran 5k in the rain"), shown on the card and in the calendar
+- Month calendar in History next to the yearly heatmap; tick past days right from it
+- Weekly recap on Stats (this week vs the same days last week) and a **Share progress** image
+- Installable as an app (PWA) with the app shell cached for offline use (production builds only)
 - Keyboard shortcuts: `n` new habit, `/` search, `h` / `s` switch views, `t` theme, `?` help
 - Account settings: change name or password, export / import your data as JSON, delete your account
 - Today's progress bar ("Today: 2 / 3 done")
@@ -141,6 +146,7 @@ Everything except `/api/health`, register and login needs an `Authorization: Bea
 | PUT    | `/:id`        | Update any of `name`, `color`, `weeklyGoal` (1 to 7), `archived`, `icon`, `category`, `reminderTime` (`HH:mm`) |
 | DELETE | `/:id`        | Delete a habit                                                              |
 | PATCH  | `/:id/toggle` | Body `{ date: "YYYY-MM-DD" }`, adds or removes the date                     |
+| PUT    | `/:id/note`   | Body `{ date, text }`, saves that day's note (max 280 chars); empty text deletes it |
 | PUT    | `/reorder`    | Body `{ ids: [...] }`, your habit ids in the new order                      |
 | GET    | `/export`     | All habits and history as JSON                                              |
 | POST   | `/import`     | Body is an export file; adds its habits (up to 500) next to existing ones   |

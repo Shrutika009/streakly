@@ -100,6 +100,11 @@ Then import `streakly-demo.json` as above.
 5. Press **?** for keyboard shortcuts (`n` new habit, `/` search, `h` / `s` switch views, `t` theme).
 6. Reminders: account menu → **Account settings → Reminders → Turn on system notifications**. They show while the tab is open.
 
+### Notes, calendar and ideas
+1. With the habit name empty, the add form shows **Need ideas?** chips. Click one to fill in a starter habit.
+2. **⋯ → Add a note for today** on a card. The note shows on the card; click it to edit or delete.
+3. **History → Month** shows a calendar. Click a past day to tick or untick it; days with notes have a dot, and the month's notes are listed below.
+
 ### Organizing
 1. Open the **⋯** menu on a card: **Move up / Move down** reorders. The order is saved, so it survives a refresh.
 2. **⋯ → Archive** hides a habit without losing its history. A popup offers **Undo**.
@@ -113,6 +118,7 @@ Switch to the **Stats** tab (or press `s`):
 - **By day of the week**: completion per weekday over the last 12 weeks. Hover a bar to read its value; by default it names your best day.
 - **Per habit**: streak, best, last-30-day completion and how many of the last 12 weeks met the goal.
 
+- **This week so far**: this week compared with the same days last week, and your strongest habit. **Share progress** downloads a square image of your stats (on phones it opens the share sheet).
 - **Achievements**: 12 badges for streaks, totals and perfect weeks. Locked ones show your progress.
 
 Archived habits aren't counted in stats.
@@ -126,6 +132,10 @@ Click your **avatar** (top right) → **Account settings**:
 - **Change password**: needs the current one.
 - **Your data**: **Export JSON** downloads everything; **Import JSON** adds habits from a file next to your existing ones (importing twice gives duplicates).
 - **Delete account**: asks for your password, then removes the account and all its habits.
+
+## Install it as an app
+
+In a production build (`npm run build` then `npm run preview`, or the deployed site), Chrome and Edge show an **Install** icon in the address bar; on phones use **Add to Home Screen**. The app shell then opens offline (your habits still need the API).
 
 ## 4. Trying the API directly
 
