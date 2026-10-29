@@ -20,7 +20,7 @@ export default function TodaySummary({ habits, userName }) {
       {/* soft accent glow in the corner */}
       <div
         aria-hidden="true"
-        className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgb(249_115_22/0.12),transparent_55%)] dark:bg-[radial-gradient(circle_at_top_right,rgb(249_115_22/0.10),transparent_55%)]"
+        className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top_right,color-mix(in_srgb,var(--color-orange-400)_22%,transparent),transparent_55%)] dark:bg-[radial-gradient(circle_at_top_right,color-mix(in_srgb,var(--color-orange-400)_12%,transparent),transparent_55%)]"
       />
 
       <div className="relative flex items-center gap-5">

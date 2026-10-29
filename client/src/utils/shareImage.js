@@ -23,8 +23,8 @@ export function drawShareCard(stats) {
 
   // background: warm gradient
   const bg = ctx.createLinearGradient(0, 0, SIZE, SIZE);
-  bg.addColorStop(0, '#fff7ed');
-  bg.addColorStop(1, '#ffedd5');
+  bg.addColorStop(0, '#fff8f3');
+  bg.addColorStop(1, '#fcdcc6');
   ctx.fillStyle = bg;
   ctx.fillRect(0, 0, SIZE, SIZE);
 
@@ -33,7 +33,7 @@ export function drawShareCard(stats) {
   ctx.fillStyle = '#1c1917';
   ctx.fillText('Streak', 80, 140);
   const w = ctx.measureText('Streak').width;
-  ctx.fillStyle = '#f97316';
+  ctx.fillStyle = '#ec9a68';
   ctx.fillText('ly', 80 + w, 140);
 
   ctx.font = font(500, 34);
@@ -42,7 +42,7 @@ export function drawShareCard(stats) {
 
   // big number
   ctx.font = font(800, 220);
-  ctx.fillStyle = '#ea580c';
+  ctx.fillStyle = '#c9733f';
   ctx.fillText(`${Math.round(stats.rate30 * 100)}%`, 72, 430);
   ctx.font = font(500, 36);
   ctx.fillStyle = '#57534e';

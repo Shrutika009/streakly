@@ -1,4 +1,5 @@
-const COLORS = ['#f97316', '#ef4444', '#eab308', '#22c55e', '#3b82f6', '#a855f7'];
+// soft tones to match the pastel accent
+const COLORS = ['#ec9a68', '#f4ad80', '#f9c6a3', '#fcd34d', '#86efac', '#93c5fd', '#c4b5fd'];
 
 // A short burst of confetti on a throwaway full-screen canvas.
 // Does nothing for people who asked the OS for reduced motion.

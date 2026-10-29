@@ -1,7 +1,7 @@
 // Streakly service worker: makes the app installable and lets the app shell
 // load offline. Only same-origin GET requests are handled, so API calls
 // (on a different origin) always go straight to the network.
-const CACHE = 'streakly-v1';
+const CACHE = 'streakly-v2';
 const SHELL = ['/', '/manifest.webmanifest', '/favicon.svg', '/icon-192.png'];
 
 self.addEventListener('install', (event) => {

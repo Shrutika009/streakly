@@ -3,7 +3,7 @@ import { dailyShare, habitRows, lastDays, overview, weekdayRates } from '../util
 import YearHeatmap from './YearHeatmap';
 import { goalLabel } from '../utils/goals';
 
-const ACCENT = '#f97316'; // orange-500, the app's accent
+const ACCENT = 'var(--color-orange-500)'; // the app's accent, see index.css
 const pct = (rate) => `${Math.round(rate * 100)}%`;
 
 export default function StatsView({ habits }) {
