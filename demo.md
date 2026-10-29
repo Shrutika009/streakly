@@ -54,7 +54,17 @@ Open **http://localhost:5173**.
 
 ## 2. Load demo data (optional but recommended)
 
-A fresh account has no history, so the heatmaps and stats look empty. To get a year of realistic data:
+A fresh account has no history, so the heatmaps and stats look empty.
+
+**Quickest:** in `server/`, run
+
+```bash
+npm run seed-demo
+```
+
+and sign in with **demo@streakly.local / demo1234**. It creates the account if needed and fills it with 8 habits (one archived) and about a year of history. Run it again any time to reset the demo to the same state.
+
+Or import a file into your own account:
 
 1. Create an account (step 3 below).
 2. Save the JSON at the end of this file as `streakly-demo.json`.

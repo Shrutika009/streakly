@@ -7,7 +7,8 @@
     "dev": "nodemon server.js",
     "start": "node server.js",
     "test": "node --test",
-    "claim-habits": "node scripts/claim-habits.js"
+    "claim-habits": "node scripts/claim-habits.js",
+    "seed-demo": "node scripts/seed-demo.js"
   },
   "license": "ISC",
   "type": "commonjs",

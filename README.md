@@ -94,6 +94,8 @@ npm run dev
 
 Open http://localhost:5173.
 
+**Demo data** (optional): in `server/`, run `npm run seed-demo`, then sign in with `demo@streakly.local` / `demo1234`. You get 8 habits with about a year of history. Running it again resets the demo account.
+
 ## Tests
 
 Both sides use Node's built-in test runner, no extra packages needed.
